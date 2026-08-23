@@ -1,4 +1,7 @@
 import {
+  AvatarKey,
+  DailyLeaderboardEntry,
+  LeaderboardContext,
   LeaderboardEntry,
   Player,
   Prediction,
@@ -41,6 +44,9 @@ const PG_RLS_VIOLATION = "42501";
 interface ProfileRow {
   id: string;
   username: string;
+  avatar_key: AvatarKey;
+  username_changed_at: string | null;
+  best_score: number | null;
   current_streak: number;
   longest_streak: number;
   last_played_date: string | null;
@@ -53,12 +59,110 @@ function mapProfile(row: ProfileRow): Player {
   return {
     id: row.id,
     username: row.username,
+    avatarKey: row.avatar_key,
+    usernameChangedAt: row.username_changed_at,
+    bestScore: row.best_score,
     currentStreak: row.current_streak,
     longestStreak: row.longest_streak,
     lastPlayedDate: row.last_played_date,
     totalScore: row.total_score,
     gamesPlayed: row.games_played,
     createdAt: row.created_at,
+  };
+}
+
+export async function updateUsername(playerId: string, username: string): Promise<Player> {
+  void playerId;
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .rpc("update_username", { p_username: username })
+    .single<ProfileRow>();
+
+  if (error) {
+    if (error.message.includes("USERNAME_TAKEN")) {
+      throw new GameFlowError("That username is taken.", "USERNAME_TAKEN");
+    }
+    if (error.message.includes("USERNAME_COOLDOWN")) {
+      throw new GameFlowError("Username changes are on cooldown.", "USERNAME_COOLDOWN");
+    }
+    throw error;
+  }
+  return mapProfile(data);
+}
+
+export async function updateAvatar(playerId: string, avatarKey: AvatarKey): Promise<Player> {
+  void playerId;
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .rpc("update_avatar", { p_avatar_key: avatarKey })
+    .single<ProfileRow>();
+  if (error) throw error;
+  return mapProfile(data);
+}
+
+export async function getPlayerRank(playerId: string): Promise<number> {
+  void playerId;
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("get_player_rank");
+  if (error) throw error;
+  return data as number;
+}
+
+/**
+ * Completed question rounds, deliberately distinct from `gamesPlayed`
+ * (profiles.games_played keeps its existing, Quick-Play-only meaning — see
+ * get_prediction_result). Counts every scored prediction across BOTH Quick
+ * Play (`predictions`) and Daily Challenge (`daily_predictions`). No RPC
+ * needed: the existing "players can read their own predictions"/"users can
+ * select their own daily predictions" RLS select policies already scope
+ * these counts to the caller, the same way get_player_rank's caller-scoped
+ * data is protected — plain counting queries, not a SECURITY DEFINER
+ * cross-player read.
+ */
+export async function getQuestionsAnsweredCount(playerId: string): Promise<number> {
+  const supabase = await createServerSupabaseClient();
+  const [quickPlay, daily] = await Promise.all([
+    supabase
+      .from("predictions")
+      .select("id", { count: "exact", head: true })
+      .eq("player_id", playerId)
+      .not("score", "is", null),
+    supabase
+      .from("daily_predictions")
+      .select("id", { count: "exact", head: true })
+      .eq("player_id", playerId)
+      .not("score", "is", null),
+  ]);
+  if (quickPlay.error) throw quickPlay.error;
+  if (daily.error) throw daily.error;
+  return (quickPlay.count ?? 0) + (daily.count ?? 0);
+}
+
+interface LeaderboardContextRow {
+  rank: number;
+  score: number;
+  is_top: boolean;
+  above_username: string | null;
+  above_score: number | null;
+}
+
+export async function getLeaderboardContext(
+  range: "today" | "all",
+  playerId: string
+): Promise<LeaderboardContext | null> {
+  void playerId;
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .rpc("get_leaderboard_context", { p_range: range })
+    .maybeSingle<LeaderboardContextRow>();
+  if (error) throw error;
+  if (!data) return null;
+  return {
+    rank: data.rank,
+    score: Number(data.score),
+    isTop: data.is_top,
+    aboveUsername: data.above_username,
+    aboveScore: data.above_score === null ? null : Number(data.above_score),
   };
 }
 
@@ -132,11 +236,10 @@ interface CrowdResultRow {
 }
 
 /**
- * The real crowd tally, straight from the `votes` table — never blended
- * with or falling back to a seeded/demo number. With 0 real votes this
- * returns actualPercentageA: 0 (never invoked with 0 votes in practice,
- * since getPredictionResult only computes a result after the caller's own
- * vote is already recorded, guaranteeing totalVotes >= 1).
+ * The crowd tally, Bayesian-shrunk toward the seeded baseline (see
+ * get_crowd_result in supabase/functions.sql and src/lib/crowdMath.ts for
+ * the formula/reasoning). `votesA`/`votesB`/`totalVotes` are still the raw
+ * counts; only `actualPercentageA` is blended.
  */
 export async function getQuestionResult(questionId: string): Promise<QuestionResult> {
   const supabase = await createServerSupabaseClient();
@@ -328,6 +431,167 @@ export async function getLeaderboard(
     username: row.username,
     score: Number(row.score),
     gamesPlayed: Number(row.games_played),
+    isCurrentPlayer: row.player_id === currentPlayerId,
+  }));
+}
+
+// ── Daily Challenge ─────────────────────────────────────────────────────
+// See supabase/migration_daily_challenge.sql for the full design rationale
+// (separate tables from predictions/votes, isolated from profiles
+// cumulative stats and the Today/All-time leaderboard, daily_votes still
+// pooled into the public crowd tally).
+
+export async function getOrCreateDailyChallenge(dateStr: string): Promise<string[]> {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("get_or_create_daily_challenge", { p_date: dateStr });
+  if (error) throw error;
+  return (data ?? []) as string[];
+}
+
+interface DailyStatusRow {
+  answered_count: number;
+  official_score: number | null;
+  daily_rank: number | null;
+}
+
+export async function getDailyStatus(
+  dateStr: string,
+  playerId: string
+): Promise<{ answeredCount: number; officialScore: number | null; dailyRank: number | null }> {
+  void playerId;
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .rpc("get_daily_status", { p_date: dateStr })
+    .single<DailyStatusRow>();
+  if (error) throw error;
+  return {
+    answeredCount: data.answered_count,
+    officialScore: data.official_score,
+    dailyRank: data.daily_rank,
+  };
+}
+
+export async function recordDailyPrediction(
+  dateStr: string,
+  questionId: string,
+  playerId: string,
+  predictedPercentageA: number
+): Promise<void> {
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.from("daily_predictions").insert({
+    challenge_date: dateStr,
+    question_id: questionId,
+    player_id: playerId,
+    predicted_percentage_a: predictedPercentageA,
+  });
+  if (error) {
+    if (error.code === PG_UNIQUE_VIOLATION) {
+      throw new GameFlowError("You already predicted this question.", "ALREADY_PREDICTED");
+    }
+    if (error.code === PG_FOREIGN_KEY_VIOLATION) {
+      throw new GameFlowError(`Unknown question: ${questionId}`, "QUESTION_NOT_FOUND");
+    }
+    throw error;
+  }
+}
+
+export async function recordDailyVote(
+  dateStr: string,
+  questionId: string,
+  playerId: string,
+  selectedOption: VoteOption
+): Promise<void> {
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.from("daily_votes").insert({
+    challenge_date: dateStr,
+    question_id: questionId,
+    player_id: playerId,
+    selected_option: selectedOption,
+  });
+  if (error) {
+    if (error.code === PG_UNIQUE_VIOLATION) {
+      throw new GameFlowError("You already voted on this question.", "ALREADY_VOTED");
+    }
+    if (error.code === PG_RLS_VIOLATION) {
+      throw new GameFlowError("Lock in a prediction before voting.", "PREDICT_BEFORE_VOTE");
+    }
+    if (error.code === PG_FOREIGN_KEY_VIOLATION) {
+      throw new GameFlowError(`Unknown question: ${questionId}`, "QUESTION_NOT_FOUND");
+    }
+    throw error;
+  }
+}
+
+interface DailyPredictionResultRow {
+  predicted_percentage_a: number;
+  chosen_option: VoteOption;
+  actual_percentage_a: number;
+  error: number;
+  score: number;
+  result_source: ResultSource;
+  total_votes: number;
+  percentile: number | null;
+  streak_current: number;
+  streak_longest: number;
+}
+
+export async function getDailyPredictionResult(
+  dateStr: string,
+  questionId: string,
+  playerId: string
+): Promise<PredictionResult> {
+  void playerId;
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .rpc("get_daily_prediction_result", { p_date: dateStr, p_question_id: questionId })
+    .single<DailyPredictionResultRow>();
+
+  if (error) {
+    if (error.message.includes("PREDICT_BEFORE_VOTE")) {
+      throw new GameFlowError("Lock in a prediction first.", "PREDICT_BEFORE_VOTE");
+    }
+    if (error.message.includes("VOTE_BEFORE_RESULT")) {
+      throw new GameFlowError("Submit your vote before seeing the result.", "VOTE_BEFORE_RESULT");
+    }
+    throw error;
+  }
+
+  return {
+    predictedPercentageA: data.predicted_percentage_a,
+    chosenOption: data.chosen_option,
+    actualPercentageA: data.actual_percentage_a,
+    error: data.error,
+    score: data.score,
+    resultSource: data.result_source,
+    totalVotes: data.total_votes,
+    percentile: data.percentile,
+    streak: {
+      current: data.streak_current,
+      longest: data.streak_longest,
+    },
+  };
+}
+
+interface DailyLeaderboardRow {
+  rank: number;
+  player_id: string;
+  username: string;
+  score: number;
+}
+
+export async function getDailyLeaderboard(
+  dateStr: string,
+  currentPlayerId: string
+): Promise<DailyLeaderboardEntry[]> {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("get_daily_leaderboard", { p_date: dateStr });
+  if (error) throw error;
+
+  return ((data ?? []) as DailyLeaderboardRow[]).map((row) => ({
+    rank: row.rank,
+    playerId: row.player_id,
+    username: row.username,
+    score: Number(row.score),
     isCurrentPlayer: row.player_id === currentPlayerId,
   }));
 }

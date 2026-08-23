@@ -8,6 +8,8 @@ export class GameFlowError extends Error {
       | "ALREADY_VOTED"
       | "PREDICT_BEFORE_VOTE"
       | "VOTE_BEFORE_RESULT"
+      | "USERNAME_TAKEN"
+      | "USERNAME_COOLDOWN"
   ) {
     super(message);
   }

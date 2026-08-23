@@ -28,20 +28,39 @@ export default function Home() {
           <p className="max-w-sm text-lg text-muted">{t("home_subtitle")}</p>
         </div>
 
-        <div className="flex flex-col items-center gap-3 sm:flex-row">
+        {/* Quick Play and Daily Challenge are two distinct modes — each gets
+            its own labeled card so a new player never confuses "unlimited
+            play" with "today's 10-question official score" (Part 13). */}
+        <div className="grid w-full max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
           <Link
             href="/play"
-            className="rounded-full bg-accent px-8 py-3 text-base font-semibold text-accent-foreground transition-all hover:scale-[1.03] hover:brightness-110 active:scale-[0.98]"
+            className="flex flex-col items-center gap-2 rounded-3xl border border-border bg-surface p-6 text-center transition-transform hover:scale-[1.02]"
+            style={{ boxShadow: "var(--shadow-card)" }}
           >
-            {t("home_playToday")}
+            <span className="text-lg font-bold">{t("home_quickPlayTitle")}</span>
+            <span className="text-sm text-muted">{t("home_quickPlayBody")}</span>
+            <span className="mt-2 rounded-full bg-accent px-6 py-2 text-sm font-semibold text-accent-foreground">
+              {t("home_playToday")}
+            </span>
           </Link>
-          <a
-            href="#how-it-works"
-            className="rounded-full border border-border px-8 py-3 text-base font-semibold text-foreground transition-colors hover:bg-surface-sunken"
+          <Link
+            href="/daily"
+            className="flex flex-col items-center gap-2 rounded-3xl border border-accent/40 bg-accent-soft p-6 text-center transition-transform hover:scale-[1.02]"
           >
-            {t("home_howItWorks")}
-          </a>
+            <span className="text-lg font-bold text-accent">{t("home_dailyChallengeTitle")}</span>
+            <span className="text-sm text-muted">{t("home_dailyChallengeBody")}</span>
+            <span className="mt-2 rounded-full border border-accent px-6 py-2 text-sm font-semibold text-accent">
+              {t("home_playDaily")}
+            </span>
+          </Link>
         </div>
+
+        <a
+          href="#how-it-works"
+          className="rounded-full border border-border px-8 py-3 text-base font-semibold text-foreground transition-colors hover:bg-surface-sunken"
+        >
+          {t("home_howItWorks")}
+        </a>
       </main>
 
       <section
@@ -74,7 +93,6 @@ export default function Home() {
             </li>
           ))}
         </ol>
-        <p className="max-w-sm text-sm text-muted">{t("home_footerNote")}</p>
       </section>
     </>
   );

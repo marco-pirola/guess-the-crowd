@@ -1,3 +1,6 @@
+import { isAvatarKey } from "@/lib/avatars";
+import type { AvatarKey } from "@/lib/types";
+
 export class ValidationError extends Error {}
 
 /** Whole-number percentage in [0, 100]. Rejects NaN, floats, out-of-range, and non-numbers. */
@@ -31,6 +34,25 @@ export function assertValidPlayerId(value: unknown): string {
 export function assertValidQuestionId(value: unknown): string {
   if (typeof value !== "string" || value.length === 0) {
     throw new ValidationError("Missing or invalid question id.");
+  }
+  return value;
+}
+
+const USERNAME_PATTERN = /^[A-Za-z0-9_]{3,20}$/;
+
+/** 3-20 chars, letters/digits/underscore only — same style as the auto-generated names. */
+export function assertValidUsername(value: unknown): string {
+  if (typeof value !== "string" || !USERNAME_PATTERN.test(value)) {
+    throw new ValidationError(
+      "Username must be 3-20 characters: letters, numbers, and underscores only."
+    );
+  }
+  return value;
+}
+
+export function assertValidAvatarKey(value: unknown): AvatarKey {
+  if (!isAvatarKey(value)) {
+    throw new ValidationError("Invalid avatar.");
   }
   return value;
 }

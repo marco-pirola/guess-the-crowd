@@ -12,7 +12,18 @@ export type AnalyticsEvent =
   | "result_viewed"
   | "share_clicked"
   | "replay_clicked"
-  | "leaderboard_viewed";
+  | "leaderboard_viewed"
+  // Retention/Daily funnel (Part 14) — see src/lib/analyticsProgress.ts for
+  // the first_game_started/question_2_reached/five_questions_completed
+  // localStorage/sessionStorage markers that decide when these fire once.
+  | "first_game_started"
+  | "question_2_reached"
+  | "five_questions_completed"
+  | "daily_question_started"
+  | "daily_started"
+  | "daily_completed"
+  | "daily_official_score_recorded"
+  | "return_visit";
 
 export function track(event: AnalyticsEvent, props: Record<string, unknown> = {}): void {
   if (process.env.NODE_ENV !== "production") {

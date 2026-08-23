@@ -22,7 +22,6 @@ export const en = {
   home_step2Body: "Lock your prediction, then — only then — answer the question yourself.",
   home_step3Title: "Reveal",
   home_step3Body: "See how the crowd actually answered, and how close your read was.",
-  home_footerNote: "There's no correct answer. You're scored on predicting everyone else.",
 
   // Onboarding
   onboarding_title: "Can you read the crowd?",
@@ -92,6 +91,9 @@ export const en = {
   leaderboard_colRank: "Rank",
   leaderboard_colPlayer: "Player",
   leaderboard_colScore: "Score",
+  leaderboard_yourPosition: "#{rank} · {score} pts",
+  leaderboard_overtake: "{diff} pts to overtake #{rank}",
+  leaderboard_top: "You're on top",
 
   // Streak
   streak_dayOne: "day",
@@ -124,6 +126,66 @@ export const en = {
   category_EverydayLife: "Everyday Life",
   category_Random: "Random",
   category_InternetCulture: "Internet Culture",
+
+  // Profile setup (first time only)
+  profile_setup_title: "Set up your player",
+  profile_setup_body: "Pick a username and an avatar — you can change the avatar anytime.",
+  profile_setup_usernameLabel: "Username",
+  profile_setup_usernamePlaceholder: "e.g. QuickFox482",
+  profile_setup_avatarLabel: "Avatar",
+  profile_setup_cta: "Start playing",
+  profile_setup_saving: "Saving…",
+
+  // Profile button / menu
+  profile_button_label: "Your profile",
+  profile_menu_bestScore: "Best Score",
+  profile_menu_gamesPlayed: "Games Played",
+  profile_menu_questionsAnswered: "Questions Answered",
+  profile_menu_globalRank: "Global Rank",
+  profile_menu_globalRankValue: "#{rank}",
+  profile_menu_avatarLabel: "Avatar",
+  profile_menu_usernameLabel: "Username",
+  profile_menu_changeUsername: "Change",
+  profile_menu_saveUsername: "Save",
+  profile_menu_cancel: "Cancel",
+  profile_menu_cooldownNotice: "Username changes are available again in {days} days.",
+  profile_menu_usernameTaken: "That username is taken.",
+  profile_menu_usernameInvalid: "3-20 characters: letters, numbers, and underscores only.",
+  profile_menu_updateError: "Couldn't save that. Try again.",
+  profile_menu_close: "Close",
+  profile_menu_saveProgressTitle: "Save your progress",
+  profile_menu_saveProgressBody: "Keep your username, score, and stats when you change device or come back later.",
+  profile_menu_continueWithGoogle: "Continue with Google",
+  profile_menu_continueWithEmail: "Continue with email",
+  profile_menu_emailPlaceholder: "you@example.com",
+  profile_menu_emailSend: "Send magic link",
+  profile_menu_emailSent: "Check your email for a link to finish saving your progress.",
+  profile_menu_linkError: "Couldn't link your account. Try again.",
+  profile_menu_linkErrorRetry: "Try again",
+
+  // Daily Challenge
+  daily_questionProgress: "Daily Challenge · Question {n}/{total}",
+  daily_title: "Daily Challenge",
+  daily_subtitle: "10 fixed questions — the same for everyone today.",
+  daily_startCta: "Start today's challenge",
+  daily_resumeCta: "Continue today's challenge",
+  daily_finding: "Loading today's challenge…",
+  daily_startError: "Couldn't load today's challenge. Try again.",
+  daily_completedNotice: "Official score already recorded today.",
+  daily_todaysScore: "Today's Score",
+  daily_dailyRank: "Daily Rank",
+  daily_playQuickPlay: "Play Quick Play",
+  daily_replay: "Replay in practice mode",
+  daily_leaderboardTitle: "Daily Leaderboard",
+  daily_noResultsYet: "Nobody's played today's challenge yet.",
+  daily_you: "(you)",
+
+  // Home page — Quick Play vs Daily Challenge
+  home_quickPlayTitle: "Quick Play",
+  home_quickPlayBody: "Unlimited questions, forever.",
+  home_dailyChallengeTitle: "Daily Challenge",
+  home_dailyChallengeBody: "10 questions. Official score once per day.",
+  home_playDaily: "Play Daily Challenge",
 } as const;
 
 export const it: Record<keyof typeof en, string> = {
@@ -142,7 +204,6 @@ export const it: Record<keyof typeof en, string> = {
   home_step2Body: "Blocca la tua previsione, poi — solo dopo — rispondi tu stesso alla domanda.",
   home_step3Title: "Scopri",
   home_step3Body: "Scopri come ha risposto davvero la folla e quanto sei stato preciso.",
-  home_footerNote: "Non c'è una risposta giusta. Vieni valutato su quanto indovini gli altri.",
 
   // Onboarding
   onboarding_title: "Sai leggere la folla?",
@@ -212,6 +273,9 @@ export const it: Record<keyof typeof en, string> = {
   leaderboard_colRank: "Pos.",
   leaderboard_colPlayer: "Giocatore",
   leaderboard_colScore: "Punti",
+  leaderboard_yourPosition: "#{rank} · {score} pt",
+  leaderboard_overtake: "{diff} pt per superare #{rank}",
+  leaderboard_top: "Sei in testa",
 
   // Streak
   streak_dayOne: "giorno",
@@ -244,6 +308,66 @@ export const it: Record<keyof typeof en, string> = {
   category_EverydayLife: "Vita quotidiana",
   category_Random: "Casuale",
   category_InternetCulture: "Cultura Internet",
+
+  // Profile setup (first time only)
+  profile_setup_title: "Crea il tuo profilo",
+  profile_setup_body: "Scegli un username e un avatar — potrai cambiare l'avatar quando vuoi.",
+  profile_setup_usernameLabel: "Username",
+  profile_setup_usernamePlaceholder: "es. QuickFox482",
+  profile_setup_avatarLabel: "Avatar",
+  profile_setup_cta: "Inizia a giocare",
+  profile_setup_saving: "Salvataggio…",
+
+  // Profile button / menu
+  profile_button_label: "Il tuo profilo",
+  profile_menu_bestScore: "Miglior punteggio",
+  profile_menu_gamesPlayed: "Partite giocate",
+  profile_menu_questionsAnswered: "Domande risposte",
+  profile_menu_globalRank: "Posizione globale",
+  profile_menu_globalRankValue: "#{rank}",
+  profile_menu_avatarLabel: "Avatar",
+  profile_menu_usernameLabel: "Username",
+  profile_menu_changeUsername: "Modifica",
+  profile_menu_saveUsername: "Salva",
+  profile_menu_cancel: "Annulla",
+  profile_menu_cooldownNotice: "Potrai cambiare di nuovo username tra {days} giorni.",
+  profile_menu_usernameTaken: "Questo username è già in uso.",
+  profile_menu_usernameInvalid: "3-20 caratteri: solo lettere, numeri e underscore.",
+  profile_menu_updateError: "Non è stato possibile salvare. Riprova.",
+  profile_menu_close: "Chiudi",
+  profile_menu_saveProgressTitle: "Salva i tuoi progressi",
+  profile_menu_saveProgressBody: "Mantieni username, punteggio e statistiche quando cambi dispositivo o torni più tardi.",
+  profile_menu_continueWithGoogle: "Continua con Google",
+  profile_menu_continueWithEmail: "Continua con email",
+  profile_menu_emailPlaceholder: "tu@esempio.com",
+  profile_menu_emailSend: "Invia link magico",
+  profile_menu_emailSent: "Controlla la tua email per il link che completa il salvataggio.",
+  profile_menu_linkError: "Non è stato possibile collegare l'account. Riprova.",
+  profile_menu_linkErrorRetry: "Riprova",
+
+  // Daily Challenge
+  daily_questionProgress: "Sfida del giorno · Domanda {n}/{total}",
+  daily_title: "Sfida del giorno",
+  daily_subtitle: "10 domande fisse — le stesse per tutti oggi.",
+  daily_startCta: "Inizia la sfida di oggi",
+  daily_resumeCta: "Continua la sfida di oggi",
+  daily_finding: "Caricamento della sfida di oggi…",
+  daily_startError: "Non è stato possibile caricare la sfida di oggi. Riprova.",
+  daily_completedNotice: "Punteggio ufficiale già registrato oggi.",
+  daily_todaysScore: "Punteggio di oggi",
+  daily_dailyRank: "Posizione del giorno",
+  daily_playQuickPlay: "Gioca a Quick Play",
+  daily_replay: "Rigioca in modalità pratica",
+  daily_leaderboardTitle: "Classifica del giorno",
+  daily_noResultsYet: "Nessuno ha ancora giocato la sfida di oggi.",
+  daily_you: "(tu)",
+
+  // Home page — Quick Play vs Daily Challenge
+  home_quickPlayTitle: "Quick Play",
+  home_quickPlayBody: "Domande illimitate, per sempre.",
+  home_dailyChallengeTitle: "Sfida del giorno",
+  home_dailyChallengeBody: "10 domande. Punteggio ufficiale una volta al giorno.",
+  home_playDaily: "Gioca la sfida del giorno",
 };
 
 export type TranslationKey = keyof typeof en;

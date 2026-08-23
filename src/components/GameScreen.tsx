@@ -6,8 +6,10 @@ import { PredictionResult, PublicQuestion, VoteOption } from "@/lib/types";
 import { getRecentQuestionIds, rememberQuestionId } from "@/lib/recentQuestions";
 import { onboardingStore, markOnboardingSeen } from "@/lib/onboarding";
 import { track } from "@/lib/analytics";
+import { markFirstGameStarted, markQuestionCompleted } from "@/lib/analyticsProgress";
 import { useLocale } from "@/lib/i18n/LocaleContext";
 import { localizeQuestion } from "@/lib/i18n/localizeQuestion";
+import { useProfile } from "@/lib/profile/ProfileContext";
 import { QuestionCard } from "@/components/QuestionCard";
 import { PhaseSteps } from "@/components/PhaseSteps";
 import { GameCard } from "@/components/GameCard";
@@ -15,6 +17,7 @@ import { PredictionSlider } from "@/components/PredictionSlider";
 import { AnswerOption } from "@/components/AnswerOption";
 import { ResultCard } from "@/components/ResultCard";
 import { Onboarding } from "@/components/Onboarding";
+import { ProfileSetup } from "@/components/ProfileSetup";
 import { Button } from "@/components/Button";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ErrorState } from "@/components/ErrorState";
@@ -38,7 +41,21 @@ async function parseErrorCode(res: Response): Promise<string | undefined> {
   }
 }
 
-export function GameScreen({ question }: { question: PublicQuestion }) {
+/** Present only when GameScreen is rendered inside the Daily Challenge flow (see /daily/[id]/page.tsx). */
+export interface DailyContext {
+  /** The fixed, ordered 10-question set for today (UTC) — same for every player. */
+  questionIds: string[];
+  /** 0-based index of the current question within questionIds. */
+  position: number;
+}
+
+export function GameScreen({
+  question,
+  dailyContext,
+}: {
+  question: PublicQuestion;
+  dailyContext?: DailyContext;
+}) {
   const router = useRouter();
   const { t, locale } = useLocale();
   // Display-only: swaps question/option text for the Italian fields when
@@ -57,16 +74,27 @@ export function GameScreen({ question }: { question: PublicQuestion }) {
     onboardingStore.getSnapshot,
     () => true
   );
-  const showOnboarding = !hasSeenOnboarding;
+  const { profile } = useProfile();
+  // Every player gets exactly one mandatory username/avatar setup, ahead of
+  // the onboarding explainer — new players and the pre-existing ones who
+  // never had a chance to set a username before this feature shipped.
+  const needsProfileSetup = profile !== null && !profile.hasCustomUsername;
+  const showOnboarding = !needsProfileSetup && !hasSeenOnboarding;
+  // Daily plays its own separate, isolated scoring track (see
+  // supabase/migration_daily_challenge.sql) — everything else about the
+  // predict/vote/reveal loop is identical, just pointed at /api/daily/*.
+  const apiBase = dailyContext
+    ? `/api/daily/questions/${question.id}`
+    : `/api/questions/${question.id}`;
 
   useEffect(() => {
-    track("game_started", { questionId: question.id });
-    rememberQuestionId(question.id);
+    track(dailyContext ? "daily_question_started" : "game_started", { questionId: question.id });
+    if (!dailyContext) rememberQuestionId(question.id);
 
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/questions/${question.id}/result`);
+        const res = await fetch(`${apiBase}/result`);
         if (cancelled) return;
         if (res.ok) {
           const data: PredictionResult = await res.json();
@@ -90,7 +118,10 @@ export function GameScreen({ question }: { question: PublicQuestion }) {
     };
     // router/t excluded: re-fetching on a language toggle or router identity
     // change (rather than only a real question/retry change) would restart
-    // the game mid-play.
+    // the game mid-play. dailyContext/apiBase excluded too: dailyContext is
+    // stable for the lifetime of this mount (a new daily question gets a
+    // fresh GameScreen via `key`, same as challenge/[id] does), so only the
+    // question id / retry attempt should re-trigger this fetch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [question.id, loadAttempt]);
 
@@ -99,13 +130,14 @@ export function GameScreen({ question }: { question: PublicQuestion }) {
     setErrorMessage(null);
     track("prediction_started", { questionId: question.id });
     try {
-      const res = await fetch(`/api/questions/${question.id}/predict`, {
+      const res = await fetch(`${apiBase}/predict`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ predictedPercentageA: predicted }),
       });
       if (res.ok) {
         track("prediction_submitted", { questionId: question.id, value: predicted });
+        markFirstGameStarted();
         setPhase("vote");
         return;
       }
@@ -126,7 +158,7 @@ export function GameScreen({ question }: { question: PublicQuestion }) {
     setBusy(true);
     setErrorMessage(null);
     try {
-      const res = await fetch(`/api/questions/${question.id}/vote`, {
+      const res = await fetch(`${apiBase}/vote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ selectedOption: option }),
@@ -138,7 +170,7 @@ export function GameScreen({ question }: { question: PublicQuestion }) {
       }
       track("vote_submitted", { questionId: question.id, option });
 
-      const resultRes = await fetch(`/api/questions/${question.id}/result`);
+      const resultRes = await fetch(`${apiBase}/result`);
       if (!resultRes.ok) {
         setErrorMessage(t("game_resultError"));
         return;
@@ -147,6 +179,7 @@ export function GameScreen({ question }: { question: PublicQuestion }) {
       setResult(data);
       setPhase("result");
       track("result_viewed", { questionId: question.id });
+      markQuestionCompleted();
     } catch {
       setErrorMessage(t("game_offlineError"));
     } finally {
@@ -159,6 +192,17 @@ export function GameScreen({ question }: { question: PublicQuestion }) {
     setAdvancing(true);
     setErrorMessage(null);
     track("replay_clicked", { questionId: question.id });
+
+    if (dailyContext) {
+      const nextIndex = dailyContext.position + 1;
+      if (nextIndex >= dailyContext.questionIds.length) {
+        track("daily_completed", { date: undefined });
+        router.push("/daily");
+        return;
+      }
+      router.push(`/daily/${dailyContext.questionIds[nextIndex]}`);
+      return;
+    }
 
     const recent = getRecentQuestionIds();
     const params = new URLSearchParams({ current: question.id, recent: recent.join(",") });
@@ -174,11 +218,13 @@ export function GameScreen({ question }: { question: PublicQuestion }) {
     }
   }
 
+  const profileSetup = needsProfileSetup ? <ProfileSetup onDone={() => {}} /> : null;
   const onboarding = showOnboarding ? <Onboarding onDismiss={markOnboardingSeen} /> : null;
 
   if (phase === "loading") {
     return (
       <>
+        {profileSetup}
         {onboarding}
         <LoadingSpinner label={t("game_loadingQuestion")} />
       </>
@@ -188,6 +234,7 @@ export function GameScreen({ question }: { question: PublicQuestion }) {
   if (phase === "error") {
     return (
       <>
+        {profileSetup}
         {onboarding}
         <ErrorState
           message={errorMessage ?? undefined}
@@ -203,7 +250,16 @@ export function GameScreen({ question }: { question: PublicQuestion }) {
 
   return (
     <div className="flex w-full max-w-lg flex-col items-center gap-6">
+      {profileSetup}
       {onboarding}
+      {dailyContext && (
+        <p className="text-xs font-semibold uppercase tracking-wider text-accent">
+          {t("daily_questionProgress", {
+            n: dailyContext.position + 1,
+            total: dailyContext.questionIds.length,
+          })}
+        </p>
+      )}
       <PhaseSteps current={PHASE_STEP[phase]} />
       <QuestionCard
         dailyNumber={question.dailyNumber}
@@ -271,8 +327,10 @@ export function GameScreen({ question }: { question: PublicQuestion }) {
             advancing={advancing}
             shareUrl={
               typeof window !== "undefined"
-                ? `${window.location.origin}/challenge/${question.id}`
-                : `/challenge/${question.id}`
+                ? `${window.location.origin}${dailyContext ? "/daily" : `/challenge/${question.id}`}`
+                : dailyContext
+                  ? "/daily"
+                  : `/challenge/${question.id}`
             }
           />
           {errorMessage && (

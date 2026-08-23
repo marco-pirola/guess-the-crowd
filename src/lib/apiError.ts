@@ -8,6 +8,8 @@ const GAME_FLOW_STATUS: Record<GameFlowError["code"], number> = {
   ALREADY_VOTED: 409,
   PREDICT_BEFORE_VOTE: 403,
   VOTE_BEFORE_RESULT: 403,
+  USERNAME_TAKEN: 409,
+  USERNAME_COOLDOWN: 403,
 };
 
 /** Maps known domain errors to sensible HTTP responses; never leaks stack traces. */

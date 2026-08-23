@@ -73,9 +73,16 @@ export interface Vote {
   createdAt: string;
 }
 
+export type AvatarKey = "fox" | "owl" | "raven" | "hawk" | "wolf" | "tiger" | "lynx";
+
 export interface Player {
   id: string;
   username: string;
+  avatarKey: AvatarKey;
+  /** Null until the player has manually chosen a username once. */
+  usernameChangedAt: string | null;
+  /** Highest single-question score ever (0-1000). Null until the first scored question. */
+  bestScore: number | null;
   currentStreak: number;
   longestStreak: number;
   lastPlayedDate: string | null; // YYYY-MM-DD, UTC
@@ -113,5 +120,50 @@ export interface LeaderboardEntry {
   username: string;
   score: number;
   gamesPlayed: number;
+  isCurrentPlayer: boolean;
+}
+
+/** GET/PATCH /api/me response shape — client-side profile summary. */
+export interface ProfileSummary {
+  username: string;
+  avatarKey: AvatarKey;
+  hasCustomUsername: boolean;
+  bestScore: number;
+  currentStreak: number;
+  longestStreak: number;
+  totalScore: number;
+  gamesPlayed: number;
+  questionsAnswered: number;
+  globalRank: number;
+  canChangeUsername: boolean;
+  usernameAvailableAt: string | null;
+}
+
+/** The player's own position, for the "points to overtake" line — not part of the top-20 list itself. */
+export interface LeaderboardContext {
+  rank: number;
+  score: number;
+  isTop: boolean;
+  /** Null only if isTop is true (nobody to overtake). */
+  aboveUsername: string | null;
+  aboveScore: number | null;
+}
+
+/** GET /api/daily response — today's fixed 10-question set, UTC date convention. */
+export interface DailyChallengeStatus {
+  date: string; // YYYY-MM-DD, UTC
+  questionIds: string[];
+  /** How many of the 10 this player has already answered (official run). */
+  answeredCount: number;
+  completed: boolean;
+  officialScore: number | null;
+  dailyRank: number | null;
+}
+
+export interface DailyLeaderboardEntry {
+  rank: number;
+  playerId: string;
+  username: string;
+  score: number;
   isCurrentPlayer: boolean;
 }
