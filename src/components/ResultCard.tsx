@@ -1,18 +1,22 @@
+"use client";
+
 import { PredictionResult, PublicQuestion } from "@/lib/types";
 import { rightPercentFromPredictedA } from "@/lib/predictionConvention";
+import { useLocale } from "@/lib/i18n/LocaleContext";
+import { TranslationKey } from "@/lib/i18n/translations";
 import { GameCard } from "@/components/GameCard";
 import { ScoreDisplay } from "@/components/ScoreDisplay";
 import { ShareButton } from "@/components/ShareButton";
 import { Button } from "@/components/Button";
 
 /** Short, punchy copy keyed off how far the prediction landed from the crowd. */
-function getResultMessage(error: number): string {
-  if (error <= 2) return "Incredible read.";
-  if (error <= 5) return "You read the crowd extremely well.";
-  if (error <= 12) return "Nice read.";
-  if (error <= 25) return "Not bad — you were close.";
-  if (error <= 40) return "You misjudged the crowd a bit.";
-  return "You completely missed the crowd.";
+function resultMessageKey(error: number): TranslationKey {
+  if (error <= 2) return "result_msgIncredible";
+  if (error <= 5) return "result_msgGreat";
+  if (error <= 12) return "result_msgNice";
+  if (error <= 25) return "result_msgNotBad";
+  if (error <= 40) return "result_msgMisjudged";
+  return "result_msgMissed";
 }
 
 /**
@@ -33,6 +37,7 @@ function ComparisonTrack({
   labelA: string;
   labelB: string;
 }) {
+  const { t } = useLocale();
   const predicted = rightPercentFromPredictedA(predictedPercentageA);
   const actual = rightPercentFromPredictedA(actualPercentageA);
 
@@ -50,18 +55,18 @@ function ComparisonTrack({
           style={{ left: `${actual}%` }}
         />
       </div>
-      <div className="flex justify-between text-[11px] font-medium text-muted">
-        <span className="truncate">{labelA}</span>
-        <span className="truncate">{labelB}</span>
+      <div className="flex justify-between gap-3 text-[11px] font-medium text-muted">
+        <span className="text-balance break-words">{labelA}</span>
+        <span className="text-balance break-words text-right">{labelB}</span>
       </div>
       <div className="flex items-center justify-center gap-4 text-[11px] font-medium text-muted">
         <span className="flex items-center gap-1">
           <span aria-hidden className="h-2.5 w-2.5 rounded-full border-2 border-accent bg-surface" />
-          You
+          {t("result_you")}
         </span>
         <span className="flex items-center gap-1">
           <span aria-hidden className="h-2 w-2 rounded-full bg-foreground" />
-          Crowd
+          {t("result_crowd")}
         </span>
       </div>
     </div>
@@ -101,19 +106,19 @@ function SplitPercentCard({
       </p>
       <div className="mt-2 flex flex-col gap-1.5">
         <div className="flex items-baseline justify-between gap-3">
-          <span className="truncate text-sm font-medium">{labelA}</span>
+          <span className="min-w-0 flex-1 text-balance break-words text-sm font-medium">{labelA}</span>
           <ScoreDisplay
             value={pctA}
             suffix="%"
-            className={"text-xl font-extrabold tabular-nums " + (accent ? "text-accent" : "")}
+            className={"shrink-0 text-xl font-extrabold tabular-nums " + (accent ? "text-accent" : "")}
           />
         </div>
         <div className="flex items-baseline justify-between gap-3">
-          <span className="truncate text-sm font-medium">{labelB}</span>
+          <span className="min-w-0 flex-1 text-balance break-words text-sm font-medium">{labelB}</span>
           <ScoreDisplay
             value={pctB}
             suffix="%"
-            className={"text-xl font-extrabold tabular-nums " + (accent ? "text-accent" : "")}
+            className={"shrink-0 text-xl font-extrabold tabular-nums " + (accent ? "text-accent" : "")}
           />
         </div>
       </div>
@@ -125,23 +130,26 @@ export function ResultCard({
   question,
   result,
   onNext,
+  advancing,
   shareUrl,
 }: {
   question: PublicQuestion;
   result: PredictionResult;
   onNext: () => void;
+  advancing: boolean;
   shareUrl: string;
 }) {
+  const { t } = useLocale();
   const chosenLabel = result.chosenOption === "A" ? question.optionA : question.optionB;
-  const shareText = `I scored ${result.score}/1000 predicting the crowd on Guess the Crowd. Can you beat me?`;
+  const shareText = t("share_text", { score: result.score });
 
   return (
     <GameCard className="flex animate-fade-in-up flex-col gap-6">
-      <p className="text-center text-lg font-bold">{getResultMessage(result.error)}</p>
+      <p className="text-center text-lg font-bold">{t(resultMessageKey(result.error))}</p>
 
       <div className="grid grid-cols-2 gap-3">
         <SplitPercentCard
-          title="Your prediction"
+          title={t("result_yourPrediction")}
           labelA={question.optionA}
           pctA={result.predictedPercentageA}
           labelB={question.optionB}
@@ -149,7 +157,7 @@ export function ResultCard({
           accent
         />
         <SplitPercentCard
-          title="The crowd"
+          title={t("result_theCrowd")}
           labelA={question.optionA}
           pctA={result.actualPercentageA}
           labelB={question.optionB}
@@ -165,20 +173,22 @@ export function ResultCard({
       />
 
       <div className="text-center text-sm text-muted">
-        <p>
-          You chose <span className="font-semibold text-foreground">{chosenLabel}</span>.
-        </p>
+        <p>{t("result_youChose", { label: chosenLabel })}</p>
       </div>
 
       <div className="flex items-center justify-center gap-10 border-y border-border py-5 text-center">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted">Error</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+            {t("result_error")}
+          </p>
           <p className="mt-1 text-xl font-bold tabular-nums">
-            {result.error} pt{result.error === 1 ? "" : "s"}
+            {t(result.error === 1 ? "result_pointsOne" : "result_pointsMany", { n: result.error })}
           </p>
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted">Score</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+            {t("result_score")}
+          </p>
           <ScoreDisplay
             value={result.score}
             className="mt-1 block text-4xl font-extrabold tabular-nums text-accent"
@@ -188,23 +198,21 @@ export function ResultCard({
 
       <div className="text-center text-sm text-muted">
         {result.percentile !== null ? (
-          <p className="mt-1">
-            You predicted the crowd better than{" "}
-            <span className="font-semibold text-foreground">{result.percentile}%</span> of
-            players.
-          </p>
+          <p className="mt-1">{t("result_percentile", { pct: result.percentile })}</p>
         ) : (
           <p className="mt-1">
             {result.resultSource === "seeded"
-              ? "Based on demo data — not enough real players yet."
-              : `Based on ${result.totalVotes} player${result.totalVotes === 1 ? "" : "s"}.`}
+              ? t("result_seededNote")
+              : t(result.totalVotes === 1 ? "result_liveNoteOne" : "result_liveNoteMany", {
+                  n: result.totalVotes,
+                })}
           </p>
         )}
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row-reverse">
-        <Button onClick={onNext} className="flex-1">
-          Next question
+        <Button onClick={onNext} loading={advancing} className="flex-1">
+          {advancing ? t("result_advancing") : t("result_nextQuestion")}
         </Button>
         <ShareButton text={shareText} url={shareUrl} />
       </div>

@@ -86,6 +86,9 @@ export async function getPublicQuestionById(questionId: string): Promise<PublicQ
     optionB: question.optionB,
     emojiA: question.emojiA,
     emojiB: question.emojiB,
+    textIt: question.textIt,
+    optionAIt: question.optionAIt,
+    optionBIt: question.optionBIt,
   };
 }
 

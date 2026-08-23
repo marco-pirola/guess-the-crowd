@@ -5,10 +5,12 @@ import { LeaderboardEntry } from "@/lib/types";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { EmptyState } from "@/components/EmptyState";
 import { track } from "@/lib/analytics";
+import { useLocale } from "@/lib/i18n/LocaleContext";
 
 type Range = "today" | "all";
 
 export function LeaderboardTable() {
+  const { t } = useLocale();
   const [range, setRange] = useState<Range>("today");
   const [entriesByRange, setEntriesByRange] = useState<Partial<Record<Range, LeaderboardEntry[]>>>(
     {}
@@ -30,7 +32,12 @@ export function LeaderboardTable() {
   const entries = entriesByRange[range] ?? null;
 
   return (
-    <div className="flex w-full max-w-lg flex-col gap-4">
+    <div className="flex w-full max-w-lg flex-col gap-6">
+      <div className="flex flex-col items-center gap-1 text-center">
+        <h1 className="text-2xl font-extrabold sm:text-3xl">{t("leaderboard_title")}</h1>
+        <p className="text-sm text-muted">{t("leaderboard_subtitle")}</p>
+      </div>
+
       <div className="flex gap-1 self-center rounded-full border border-border bg-surface p-1">
         {(["today", "all"] as const).map((r) => (
           <button
@@ -42,20 +49,18 @@ export function LeaderboardTable() {
                 : "text-muted hover:text-foreground"
             }`}
           >
-            {r === "today" ? "Today" : "All-time"}
+            {r === "today" ? t("leaderboard_today") : t("leaderboard_allTime")}
           </button>
         ))}
       </div>
 
       {entries === null ? (
-        <LoadingSpinner label="Loading leaderboard…" />
+        <LoadingSpinner label={t("leaderboard_loading")} />
       ) : entries.length === 0 ? (
         <EmptyState
-          title="No scores yet"
+          title={t("leaderboard_noScoresTitle")}
           description={
-            range === "today"
-              ? "Be the first to play today."
-              : "Play a challenge to appear on the leaderboard."
+            range === "today" ? t("leaderboard_noScoresTodayDesc") : t("leaderboard_noScoresAllDesc")
           }
         />
       ) : (
@@ -73,7 +78,7 @@ export function LeaderboardTable() {
                 <span className="w-6 text-sm font-semibold text-muted">{entry.rank}</span>
                 <span className="font-medium">
                   {entry.username}
-                  {entry.isCurrentPlayer && <span className="text-muted"> (you)</span>}
+                  {entry.isCurrentPlayer && <span className="text-muted"> {t("leaderboard_you")}</span>}
                 </span>
               </div>
               <span className="font-semibold tabular-nums">{entry.score}</span>

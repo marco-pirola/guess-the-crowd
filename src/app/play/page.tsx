@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ErrorState } from "@/components/ErrorState";
 import { getRecentQuestionIds } from "@/lib/recentQuestions";
+import { useLocale } from "@/lib/i18n/LocaleContext";
 
 /**
  * Every fresh visit to /play must land on a brand-new random question, never
@@ -17,6 +18,7 @@ import { getRecentQuestionIds } from "@/lib/recentQuestions";
  */
 export default function PlayPage() {
   const router = useRouter();
+  const { t } = useLocale();
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
@@ -49,12 +51,9 @@ export default function PlayPage() {
       <Header />
       <main className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-8 sm:py-12">
         {failed ? (
-          <ErrorState
-            message="Couldn't start a new question. Try again."
-            onRetry={() => setAttempt((n) => n + 1)}
-          />
+          <ErrorState message={t("play_startError")} onRetry={() => setAttempt((n) => n + 1)} />
         ) : (
-          <LoadingSpinner label="Finding a question…" />
+          <LoadingSpinner label={t("play_finding")} />
         )}
       </main>
     </>

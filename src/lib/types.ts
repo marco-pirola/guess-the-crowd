@@ -18,6 +18,15 @@ export interface Question {
   optionB: string;
   emojiA: string;
   emojiB: string;
+  /**
+   * Italian display text. Optional/nullable and additive — most of the
+   * question pool has no Italian text yet, in which case the client falls
+   * back to the English fields above (see src/lib/i18n/localizeQuestion.ts).
+   * Never used for scoring, matching, or IDs — display only.
+   */
+  textIt?: string | null;
+  optionAIt?: string | null;
+  optionBIt?: string | null;
   /** Only present for demo/seed questions. Used until enough live votes exist. */
   seededResultPercentageA: number;
   /** Minimum number of live votes required before we trust live data over the seed. */
@@ -36,6 +45,10 @@ export interface PublicQuestion {
   optionB: string;
   emojiA: string;
   emojiB: string;
+  /** See Question.textIt above — same fallback-to-English contract. */
+  textIt?: string | null;
+  optionAIt?: string | null;
+  optionBIt?: string | null;
 }
 
 export interface Prediction {

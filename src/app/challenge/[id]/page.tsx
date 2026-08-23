@@ -46,7 +46,15 @@ export default async function ChallengePage({
     <>
       <Header />
       <main className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-8 sm:py-12">
-        <GameScreen question={question} />
+        {/*
+         * `key` forces a full remount (fresh phase/predicted/result/etc.
+         * state) whenever the question id changes. Without it, navigating
+         * A -> B via handleNext's router.push would briefly render B's
+         * question text against A's leftover phase/result state, since
+         * React only re-runs GameScreen's effects on a prop change — it
+         * doesn't reset state on its own.
+         */}
+        <GameScreen key={question.id} question={question} />
       </main>
     </>
   );

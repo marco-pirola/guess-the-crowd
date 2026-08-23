@@ -66,7 +66,7 @@ export async function getPublicQuestionById(questionId: string): Promise<PublicQ
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("questions")
-    .select("id, text, category, option_a, option_b, emoji_a, emoji_b")
+    .select("id, text, category, option_a, option_b, emoji_a, emoji_b, text_it, option_a_it, option_b_it")
     .eq("id", questionId)
     .eq("status", "published")
     .maybeSingle();
@@ -88,6 +88,9 @@ export async function getPublicQuestionById(questionId: string): Promise<PublicQ
     optionB: data.option_b,
     emojiA: data.emoji_a,
     emojiB: data.emoji_b,
+    textIt: data.text_it,
+    optionAIt: data.option_a_it,
+    optionBIt: data.option_b_it,
   };
 }
 

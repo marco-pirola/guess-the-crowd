@@ -32,7 +32,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --background: #0b0b0f;
     --foreground: #f4f4f6;
     --surface: #16161c;
@@ -46,6 +46,37 @@
     --danger: #f0685f;
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 16px 40px -20px rgba(0, 0, 0, 0.6);
   }
+}
+
+/* Explicit toggle wins over system preference in both directions. */
+:root[data-theme="dark"] {
+  --background: #0b0b0f;
+  --foreground: #f4f4f6;
+  --surface: #16161c;
+  --surface-sunken: #1d1d24;
+  --border: #29292f;
+  --muted: #9a99a6;
+  --accent: #8577ff;
+  --accent-soft: #211f3a;
+  --accent-foreground: #0b0b0f;
+  --success: #35c98d;
+  --danger: #f0685f;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 16px 40px -20px rgba(0, 0, 0, 0.6);
+}
+
+:root[data-theme="light"] {
+  --background: #faf9f7;
+  --foreground: #14141a;
+  --surface: #ffffff;
+  --surface-sunken: #f3f1ec;
+  --border: #e7e4de;
+  --muted: #6b6b76;
+  --accent: #5b4dfc;
+  --accent-soft: #efedff;
+  --accent-foreground: #ffffff;
+  --success: #1a9e6b;
+  --danger: #d8483f;
+  --shadow-card: 0 1px 2px rgba(20, 20, 26, 0.04), 0 16px 32px -20px rgba(20, 20, 26, 0.18);
 }
 
 * {

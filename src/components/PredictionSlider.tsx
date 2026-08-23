@@ -1,6 +1,7 @@
 "use client";
 
 import { predictedAFromRightPercent, rightPercentFromPredictedA } from "@/lib/predictionConvention";
+import { useLocale } from "@/lib/i18n/LocaleContext";
 
 interface PredictionSliderProps {
   value: number;
@@ -26,18 +27,17 @@ interface PredictionSliderProps {
  * always increase optionB's percentage, for mouse, touch, and keyboard.
  */
 export function PredictionSlider({ value, onChange, optionA, optionB }: PredictionSliderProps) {
+  const { t } = useLocale();
   const pctB = 100 - value;
   const rightPercent = rightPercentFromPredictedA(value); // drives the native input; see note above
 
   return (
     <div className="flex flex-col gap-5">
-      <p className="text-center text-sm font-medium text-muted">
-        How do you think everyone else will choose?
-      </p>
+      <p className="text-center text-sm font-medium text-muted">{t("game_predictPrompt")}</p>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-2xl border border-accent/25 bg-accent-soft p-4 text-center">
-          <p className="truncate text-xs font-semibold uppercase tracking-wide text-accent">
+          <p className="text-balance break-words text-xs font-semibold uppercase tracking-wide text-accent">
             {optionA}
           </p>
           <p className="mt-1 text-4xl font-extrabold tabular-nums text-accent" aria-live="polite">
@@ -45,7 +45,7 @@ export function PredictionSlider({ value, onChange, optionA, optionB }: Predicti
           </p>
         </div>
         <div className="rounded-2xl border border-border bg-surface-sunken p-4 text-center">
-          <p className="truncate text-xs font-semibold uppercase tracking-wide text-foreground/70">
+          <p className="text-balance break-words text-xs font-semibold uppercase tracking-wide text-foreground/70">
             {optionB}
           </p>
           <p className="mt-1 text-4xl font-extrabold tabular-nums" aria-live="polite">
@@ -54,6 +54,13 @@ export function PredictionSlider({ value, onChange, optionA, optionB }: Predicti
         </div>
       </div>
 
+      {/*
+       * No colored fill: user testing repeatedly found any colored split
+       * (even a "corrected" one) read as ambiguous about which side it
+       * represented. The thumb position is the only indicator of the
+       * split; the track stays a single neutral bar. Do not reintroduce
+       * a fill here.
+       */}
       <div className="relative h-9 w-full touch-none select-none">
         <div className="absolute left-0 right-0 top-1/2 h-3 -translate-y-1/2 rounded-full bg-border" />
         <input
@@ -63,8 +70,8 @@ export function PredictionSlider({ value, onChange, optionA, optionB }: Predicti
           step={1}
           value={rightPercent}
           onChange={(e) => onChange(predictedAFromRightPercent(Number(e.target.value)))}
-          aria-label={`Predicted split between ${optionA} and ${optionB}`}
-          aria-valuetext={`${optionA} ${value} percent, ${optionB} ${pctB} percent`}
+          aria-label={t("game_sliderLabel", { optionA, optionB })}
+          aria-valuetext={`${optionA} ${value}%, ${optionB} ${pctB}%`}
           className="peer absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent opacity-0"
         />
         <div
@@ -74,9 +81,9 @@ export function PredictionSlider({ value, onChange, optionA, optionB }: Predicti
         />
       </div>
 
-      <div className="flex justify-between text-xs font-medium text-muted">
-        <span>{optionA}</span>
-        <span>{optionB}</span>
+      <div className="flex justify-between gap-3 text-xs font-medium text-muted">
+        <span className="text-balance break-words">{optionA}</span>
+        <span className="text-balance break-words text-right">{optionB}</span>
       </div>
     </div>
   );

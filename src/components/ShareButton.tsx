@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { track } from "@/lib/analytics";
+import { useLocale } from "@/lib/i18n/LocaleContext";
 import { Button } from "@/components/Button";
 
 export function ShareButton({ text, url }: { text: string; url: string }) {
+  const { t } = useLocale();
   const [copied, setCopied] = useState(false);
 
   async function handleShare() {
@@ -28,7 +30,7 @@ export function ShareButton({ text, url }: { text: string; url: string }) {
 
   return (
     <Button variant="secondary" onClick={handleShare} className="w-full sm:w-auto">
-      {copied ? "Link copied!" : "Share result"}
+      {copied ? t("share_linkCopied") : t("share_result")}
     </Button>
   );
 }
