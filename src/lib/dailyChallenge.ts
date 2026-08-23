@@ -19,10 +19,3 @@ export function getDailyQuestionId(date: Date = new Date()): string {
 export function todayUtcDateString(date: Date = new Date()): string {
   return date.toISOString().slice(0, 10);
 }
-
-/** Next question in the set, so a player can keep playing past today's featured one. */
-export function getNextQuestionId(currentQuestionId: string): string {
-  const index = seedQuestions.findIndex((q) => q.id === currentQuestionId);
-  const nextIndex = (Math.max(index, 0) + 1) % seedQuestions.length;
-  return seedQuestions[nextIndex].id;
-}

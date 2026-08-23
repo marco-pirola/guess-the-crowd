@@ -12,7 +12,7 @@ const lines = seedQuestions.map((q) => {
 
 console.log(
   "-- Generated from src/lib/store/seedQuestions.ts — run `npm run gen:seed-sql`\n" +
-    "-- to regenerate after editing the question list. Run after schema.sql.\n" +
+    "-- to regenerate after editing the question list. Run after schema.sql and functions.sql.\n" +
     "insert into questions (id, text, category, option_a, option_b, emoji_a, emoji_b, seeded_result_percentage_a, minimum_votes, status) values\n" +
     lines.join(",\n") +
     "\non conflict (id) do nothing;"

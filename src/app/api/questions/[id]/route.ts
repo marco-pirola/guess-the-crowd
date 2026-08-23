@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { assertValidQuestionId } from "@/lib/validation";
 import { toErrorResponse } from "@/lib/apiError";
-import { GameFlowError, toPublicQuestion } from "@/lib/store";
-import { seedQuestions } from "@/lib/store/seedQuestions";
+import { getPublicQuestionById } from "@/lib/store";
 
 export async function GET(
   _request: Request,
@@ -11,11 +10,8 @@ export async function GET(
   try {
     const { id } = await params;
     const questionId = assertValidQuestionId(id);
-    const question = seedQuestions.find((q) => q.id === questionId);
-    if (!question) {
-      throw new GameFlowError(`Unknown question: ${questionId}`, "QUESTION_NOT_FOUND");
-    }
-    return NextResponse.json(toPublicQuestion(question));
+    const question = await getPublicQuestionById(questionId);
+    return NextResponse.json(question);
   } catch (error) {
     return toErrorResponse(error);
   }

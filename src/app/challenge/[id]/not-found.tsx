@@ -9,7 +9,7 @@ export default function ChallengeNotFound() {
         <p className="text-lg font-medium">This challenge doesn&apos;t exist.</p>
         <Link
           href="/play"
-          className="rounded-full bg-accent px-5 py-2 text-sm font-semibold text-accent-foreground"
+          className="inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-base font-semibold text-accent-foreground transition-all hover:scale-[1.02] hover:brightness-110 active:scale-[0.98]"
         >
           Play today&apos;s challenge
         </Link>

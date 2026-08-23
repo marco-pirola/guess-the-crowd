@@ -1,13 +1,19 @@
--- Guess the Crowd — future Supabase schema.
+-- Guess the Crowd — Supabase schema.
 --
--- The MVP runs on a local JSON file (src/lib/store/localFileStore.ts) so the
--- game works with zero setup. This file is the target schema for when the
--- project moves to real Supabase: the shape mirrors src/lib/types.ts and the
--- function signatures in src/lib/store/index.ts, so porting is a matter of
--- writing a supabaseStore.ts against these tables, not redesigning anything.
+-- This is the real, persistent data layer (src/lib/store/supabaseStore.ts)
+-- used whenever NEXT_PUBLIC_SUPABASE_URL/NEXT_PUBLIC_SUPABASE_ANON_KEY are
+-- configured. Without them, the app falls back to a local JSON file
+-- (src/lib/store/localFileStore.ts) purely so it still runs with zero setup
+-- — see README.md. The shape here mirrors src/lib/types.ts.
 --
 -- Run this in the Supabase SQL editor (or via `supabase db push`) on a fresh
 -- project, after enabling anonymous sign-ins under Authentication > Providers.
+-- Then run supabase/functions.sql, then supabase/seed.sql.
+
+-- gen_random_uuid() is built into Postgres 13+ (which every Supabase project
+-- runs), so this is just defensive belt-and-suspenders for reproducing the
+-- schema from scratch on an older or non-Supabase Postgres.
+create extension if not exists pgcrypto;
 
 -- ── profiles ─────────────────────────────────────────────────────────────
 -- One row per auth.users id (anonymous or upgraded). Created on first visit.

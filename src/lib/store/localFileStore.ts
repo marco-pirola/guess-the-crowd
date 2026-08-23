@@ -14,6 +14,9 @@ import {
 import { seedQuestions } from "@/lib/store/seedQuestions";
 import { todayUtcDateString } from "@/lib/dailyChallenge";
 import { calculatePercentile, calculatePredictionScore } from "@/lib/scoring";
+import { computeActualPercentageA } from "@/lib/crowdMath";
+import { randomUsername } from "@/lib/username";
+import { GameFlowError } from "@/lib/store/errors";
 
 /**
  * MVP data layer: a single JSON file under `.local-data/`, gitignored.
@@ -26,20 +29,6 @@ import { calculatePercentile, calculatePredictionScore } from "@/lib/scoring";
  * (see supabase/schema.sql for the matching Postgres schema).
  */
 
-export class GameFlowError extends Error {
-  constructor(
-    message: string,
-    public code:
-      | "QUESTION_NOT_FOUND"
-      | "ALREADY_PREDICTED"
-      | "ALREADY_VOTED"
-      | "PREDICT_BEFORE_VOTE"
-      | "VOTE_BEFORE_RESULT"
-  ) {
-    super(message);
-  }
-}
-
 interface Db {
   players: Record<string, Player>;
   predictions: Prediction[];
@@ -47,30 +36,6 @@ interface Db {
 }
 
 const DB_PATH = path.join(process.cwd(), ".local-data", "db.json");
-const ADJECTIVES = [
-  "Quick",
-  "Clever",
-  "Bold",
-  "Lucky",
-  "Sharp",
-  "Calm",
-  "Swift",
-  "Bright",
-  "Sly",
-  "Keen",
-];
-const ANIMALS = [
-  "Fox",
-  "Owl",
-  "Wolf",
-  "Hawk",
-  "Otter",
-  "Lynx",
-  "Falcon",
-  "Panda",
-  "Tiger",
-  "Raven",
-];
 
 let writeQueue: Promise<unknown> = Promise.resolve();
 
@@ -108,11 +73,9 @@ function getQuestion(questionId: string): Question {
   return question;
 }
 
-export function getPublicQuestionById(questionId: string): PublicQuestion {
-  return toPublicQuestion(getQuestion(questionId));
-}
-
-export function toPublicQuestion(question: Question): PublicQuestion {
+/** async for interface parity with supabaseStore.ts — both are exported through the same store facade. */
+export async function getPublicQuestionById(questionId: string): Promise<PublicQuestion> {
+  const question = getQuestion(questionId);
   const position = seedQuestions.findIndex((q) => q.id === question.id);
   return {
     id: question.id,
@@ -126,11 +89,15 @@ export function toPublicQuestion(question: Question): PublicQuestion {
   };
 }
 
-function randomUsername(): string {
-  const adjective = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
-  const animal = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
-  const number = Math.floor(100 + Math.random() * 900);
-  return `${adjective}${animal}${number}`;
+/**
+ * The full pool of playable question ids, for randomized "next question"
+ * selection (see src/lib/questionSelection.ts). Content itself is never
+ * returned here — just enough to pick from, matching supabaseStore.ts.
+ */
+export async function listQuestionIds(): Promise<{ id: string }[]> {
+  return seedQuestions
+    .filter((q) => q.status === "published")
+    .map((q) => ({ id: q.id }));
 }
 
 export async function getOrCreatePlayer(playerId: string): Promise<Player> {
@@ -152,24 +119,25 @@ export async function getOrCreatePlayer(playerId: string): Promise<Player> {
   });
 }
 
+/**
+ * Real votes only, always — no seeded/demo blending, matching supabaseStore.ts
+ * exactly. `question.seededResultPercentageA`/`minimumVotes` are intentionally
+ * never read here: this local file store is a dev-only fallback for running
+ * without Supabase configured, and it must behave like the real thing (see
+ * README.md), not like a different, misleading crowd. A question nobody has
+ * voted on yet (only possible before the *current* player's own vote is
+ * recorded, which always happens first — see getPredictionResult below)
+ * would divide by zero; computeActualPercentageA handles that by returning 0.
+ */
 function computeQuestionResult(question: Question, votes: Vote[]): QuestionResult {
   const questionVotes = votes.filter((v) => v.questionId === question.id);
   const votesA = questionVotes.filter((v) => v.selectedOption === "A").length;
   const votesB = questionVotes.length - votesA;
   const totalVotes = questionVotes.length;
 
-  if (totalVotes >= question.minimumVotes) {
-    return {
-      resultSource: "live",
-      actualPercentageA: Math.round((votesA / totalVotes) * 100),
-      totalVotes,
-      votesA,
-      votesB,
-    };
-  }
   return {
-    resultSource: "seeded",
-    actualPercentageA: question.seededResultPercentageA,
+    resultSource: "live",
+    actualPercentageA: computeActualPercentageA(votesA, totalVotes),
     totalVotes,
     votesA,
     votesB,

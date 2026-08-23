@@ -3,16 +3,27 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PredictionResult, PublicQuestion, VoteOption } from "@/lib/types";
-import { getNextQuestionId } from "@/lib/dailyChallenge";
+import { getRecentQuestionIds, rememberQuestionId } from "@/lib/recentQuestions";
 import { track } from "@/lib/analytics";
 import { QuestionCard } from "@/components/QuestionCard";
+import { PhaseSteps } from "@/components/PhaseSteps";
+import { GameCard } from "@/components/GameCard";
 import { PredictionSlider } from "@/components/PredictionSlider";
 import { AnswerOption } from "@/components/AnswerOption";
 import { ResultCard } from "@/components/ResultCard";
+import { Button } from "@/components/Button";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ErrorState } from "@/components/ErrorState";
 
 type Phase = "loading" | "predict" | "vote" | "result" | "error";
+
+const PHASE_STEP: Record<Phase, 0 | 1 | 2> = {
+  loading: 0,
+  predict: 0,
+  vote: 1,
+  result: 2,
+  error: 0,
+};
 
 async function parseErrorCode(res: Response): Promise<string | undefined> {
   try {
@@ -30,9 +41,11 @@ export function GameScreen({ question }: { question: PublicQuestion }) {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<PredictionResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [advancing, setAdvancing] = useState(false);
 
   useEffect(() => {
     track("game_started", { questionId: question.id });
+    rememberQuestionId(question.id);
 
     let cancelled = false;
     (async () => {
@@ -105,9 +118,24 @@ export function GameScreen({ question }: { question: PublicQuestion }) {
     track("result_viewed", { questionId: question.id });
   }
 
-  function handleNext() {
+  async function handleNext() {
+    if (advancing) return;
+    setAdvancing(true);
+    setErrorMessage(null);
     track("replay_clicked", { questionId: question.id });
-    router.push(`/challenge/${getNextQuestionId(question.id)}`);
+
+    const recent = getRecentQuestionIds();
+    const params = new URLSearchParams({ current: question.id, recent: recent.join(",") });
+
+    try {
+      const res = await fetch(`/api/questions/next?${params.toString()}`);
+      if (!res.ok) throw new Error("Failed to pick next question");
+      const data: { id: string } = await res.json();
+      router.push(`/challenge/${data.id}`);
+    } catch {
+      setAdvancing(false);
+      setErrorMessage("Couldn't load the next question. Try again.");
+    }
   }
 
   if (phase === "loading") return <LoadingSpinner label="Loading question…" />;
@@ -116,68 +144,85 @@ export function GameScreen({ question }: { question: PublicQuestion }) {
     return <ErrorState message={errorMessage ?? undefined} onRetry={() => setPhase("predict")} />;
   }
 
-  if (phase === "result" && result) {
-    return (
-      <ResultCard
-        question={question}
-        result={result}
-        onNext={handleNext}
-        shareUrl={
-          typeof window !== "undefined"
-            ? `${window.location.origin}/challenge/${question.id}`
-            : `/challenge/${question.id}`
-        }
-      />
-    );
-  }
-
-  if (phase === "vote") {
-    return (
+  return (
+    <div className="flex w-full max-w-lg flex-col items-center gap-6">
+      <PhaseSteps current={PHASE_STEP[phase]} />
       <QuestionCard
         dailyNumber={question.dailyNumber}
         category={question.category}
-        question="Now choose your answer."
-      >
-        <div className="flex gap-4">
-          <AnswerOption
-            label={question.optionA}
-            emoji={question.emojiA}
-            disabled={busy}
-            onClick={() => handleVote("A")}
-          />
-          <AnswerOption
-            label={question.optionB}
-            emoji={question.emojiB}
-            disabled={busy}
-            onClick={() => handleVote("B")}
-          />
-        </div>
-        {errorMessage && <p className="text-center text-sm text-red-500">{errorMessage}</p>}
-      </QuestionCard>
-    );
-  }
-
-  return (
-    <QuestionCard
-      dailyNumber={question.dailyNumber}
-      category={question.category}
-      question={question.text}
-    >
-      <PredictionSlider
-        value={predicted}
-        onChange={setPredicted}
-        optionA={question.optionA}
-        optionB={question.optionB}
+        question={question.text}
       />
-      <button
-        type="button"
-        onClick={handleLockPrediction}
-        disabled={busy}
-        className="w-full rounded-full bg-accent px-6 py-3 text-base font-semibold text-accent-foreground transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60"
-      >
-        {busy ? "Locking…" : "Lock prediction"}
-      </button>
-      {errorMessage && <p className="text-center text-sm text-red-500">{errorMessage}</p>}
-    </QuestionCard>
+
+      {phase === "predict" && (
+        <GameCard key="predict" className="flex animate-fade-in-up flex-col gap-6">
+          <PredictionSlider
+            value={predicted}
+            onChange={setPredicted}
+            optionA={question.optionA}
+            optionB={question.optionB}
+          />
+          <Button onClick={handleLockPrediction} loading={busy} className="w-full">
+            {busy ? "Locking…" : "Lock prediction"}
+          </Button>
+          {errorMessage && (
+            <p role="alert" className="text-center text-sm text-danger">
+              {errorMessage}
+            </p>
+          )}
+        </GameCard>
+      )}
+
+      {phase === "vote" && (
+        <GameCard key="vote" className="flex animate-fade-in-up flex-col gap-6">
+          <div className="text-center">
+            <p className="text-xs font-semibold uppercase tracking-wider text-accent">
+              Now make your choice
+            </p>
+            <p className="mt-1 text-sm text-muted">Forget the crowd. What would YOU choose?</p>
+          </div>
+          <div className="flex gap-4">
+            <AnswerOption
+              label={question.optionA}
+              emoji={question.emojiA}
+              tone="a"
+              disabled={busy}
+              onClick={() => handleVote("A")}
+            />
+            <AnswerOption
+              label={question.optionB}
+              emoji={question.emojiB}
+              tone="b"
+              disabled={busy}
+              onClick={() => handleVote("B")}
+            />
+          </div>
+          {errorMessage && (
+            <p role="alert" className="text-center text-sm text-danger">
+              {errorMessage}
+            </p>
+          )}
+        </GameCard>
+      )}
+
+      {phase === "result" && result && (
+        <>
+          <ResultCard
+            question={question}
+            result={result}
+            onNext={handleNext}
+            shareUrl={
+              typeof window !== "undefined"
+                ? `${window.location.origin}/challenge/${question.id}`
+                : `/challenge/${question.id}`
+            }
+          />
+          {errorMessage && (
+            <p role="alert" className="text-center text-sm text-danger">
+              {errorMessage}
+            </p>
+          )}
+        </>
+      )}
+    </div>
   );
 }

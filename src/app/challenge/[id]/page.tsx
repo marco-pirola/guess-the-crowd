@@ -11,7 +11,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   try {
-    const question = getPublicQuestionById(id);
+    const question = await getPublicQuestionById(id);
     const title = "Can you predict the crowd?";
     const description = `I'm playing Guess the Crowd: "${question.text}" — think you can predict what everyone else picks?`;
     return {
@@ -34,7 +34,7 @@ export default async function ChallengePage({
 
   let question;
   try {
-    question = getPublicQuestionById(id);
+    question = await getPublicQuestionById(id);
   } catch (error) {
     if (error instanceof GameFlowError && error.code === "QUESTION_NOT_FOUND") {
       notFound();
@@ -45,7 +45,7 @@ export default async function ChallengePage({
   return (
     <>
       <Header />
-      <main className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-8">
+      <main className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-8 sm:py-12">
         <GameScreen question={question} />
       </main>
     </>

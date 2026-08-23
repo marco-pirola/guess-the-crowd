@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { track } from "@/lib/analytics";
+import { Button } from "@/components/Button";
 
 export function ShareButton({ text, url }: { text: string; url: string }) {
   const [copied, setCopied] = useState(false);
@@ -26,12 +27,8 @@ export function ShareButton({ text, url }: { text: string; url: string }) {
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleShare}
-      className="w-full rounded-full border border-border bg-surface px-6 py-3 text-base font-semibold text-foreground transition-transform hover:scale-[1.02] active:scale-[0.98] sm:w-auto"
-    >
+    <Button variant="secondary" onClick={handleShare} className="w-full sm:w-auto">
       {copied ? "Link copied!" : "Share result"}
-    </button>
+    </Button>
   );
 }

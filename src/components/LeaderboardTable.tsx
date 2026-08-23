@@ -31,13 +31,15 @@ export function LeaderboardTable() {
 
   return (
     <div className="flex w-full max-w-lg flex-col gap-4">
-      <div className="flex gap-2 self-center rounded-full border border-border bg-surface p-1">
+      <div className="flex gap-1 self-center rounded-full border border-border bg-surface p-1">
         {(["today", "all"] as const).map((r) => (
           <button
             key={r}
             onClick={() => setRange(r)}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-              range === r ? "bg-accent text-accent-foreground" : "text-muted"
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+              range === r
+                ? "bg-accent text-accent-foreground"
+                : "text-muted hover:text-foreground"
             }`}
           >
             {r === "today" ? "Today" : "All-time"}
