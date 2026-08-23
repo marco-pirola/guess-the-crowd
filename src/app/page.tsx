@@ -51,18 +51,29 @@ export default function Home() {
         <h2 className="text-xs font-semibold uppercase tracking-wider text-muted">
           {t("home_howItWorks")}
         </h2>
-        <div className="grid w-full max-w-3xl gap-6 sm:grid-cols-3">
+        {/*
+         * A bordered box in this app always means "you can interact with
+         * this" (Button, GameCard, AnswerOption). These three steps are pure
+         * explanation, so they deliberately avoid that language: no border,
+         * no card background, no hover state — just a numbered timeline a
+         * reader scans, never something they'd try to click.
+         */}
+        <ol className="flex w-full max-w-3xl flex-col gap-6 sm:flex-row sm:gap-4">
           {STEPS.map((step, i) => (
-            <div
-              key={step.titleKey}
-              className="flex flex-col gap-2 rounded-2xl border border-border bg-surface p-6"
-            >
-              <span className="text-xs font-semibold text-accent">0{i + 1}</span>
-              <h3 className="text-lg font-bold">{t(step.titleKey)}</h3>
-              <p className="text-sm text-muted">{t(step.bodyKey)}</p>
-            </div>
+            <li key={step.titleKey} className="flex flex-1 items-start gap-4 sm:flex-col sm:items-center sm:text-center">
+              <span
+                aria-hidden
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-bold text-accent"
+              >
+                {i + 1}
+              </span>
+              <div className="flex flex-col gap-1 sm:items-center">
+                <h3 className="text-lg font-bold">{t(step.titleKey)}</h3>
+                <p className="text-sm text-muted">{t(step.bodyKey)}</p>
+              </div>
+            </li>
           ))}
-        </div>
+        </ol>
         <p className="max-w-sm text-sm text-muted">{t("home_footerNote")}</p>
       </section>
     </>

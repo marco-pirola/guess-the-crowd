@@ -1,7 +1,6 @@
 "use client";
 
-import { PredictionResult, PublicQuestion } from "@/lib/types";
-import { rightPercentFromPredictedA } from "@/lib/predictionConvention";
+import { PredictionResult, PublicQuestion, VoteOption } from "@/lib/types";
 import { useLocale } from "@/lib/i18n/LocaleContext";
 import { TranslationKey } from "@/lib/i18n/translations";
 import { GameCard } from "@/components/GameCard";
@@ -19,108 +18,82 @@ function resultMessageKey(error: number): TranslationKey {
   return "result_msgMissed";
 }
 
-/**
- * Two dots on a shared 0–100 track (optionA → optionB) — same mental model
- * as the slider, so dot position must use the same left→right convention:
- * position = optionB's (right's) share, via rightPercentFromPredictedA.
- * Positioning directly off the raw optionA percentage would put the dots
- * backwards relative to the labelA/labelB ends of this exact track.
- */
-function ComparisonTrack({
-  predictedPercentageA,
-  actualPercentageA,
-  labelA,
-  labelB,
-}: {
-  predictedPercentageA: number;
-  actualPercentageA: number;
-  labelA: string;
-  labelB: string;
-}) {
-  const { t } = useLocale();
-  const predicted = rightPercentFromPredictedA(predictedPercentageA);
-  const actual = rightPercentFromPredictedA(actualPercentageA);
+/** Good reads get the accent color; poor ones stay neutral — never alarming/red, this isn't an error state. */
+function accuracyTone(error: number): string {
+  return error <= 25 ? "text-accent" : "text-foreground";
+}
 
+/** One option's value within a section — emoji/label flex to fit, bar + number stay fixed-width so rows line up. */
+function ValueRow({
+  emoji,
+  label,
+  pct,
+  emphasis,
+}: {
+  emoji: string;
+  label: string;
+  pct: number;
+  emphasis?: boolean;
+}) {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="relative h-2 rounded-full bg-border">
+    <div className="flex items-center gap-3">
+      <span className="flex min-w-0 flex-1 items-center gap-2 text-sm font-medium">
+        <span aria-hidden>{emoji}</span>
+        <span className="min-w-0 text-balance break-words">{label}</span>
+      </span>
+      <div className="relative hidden h-2 w-16 shrink-0 rounded-full bg-border/70 sm:block">
         <div
-          aria-hidden
-          className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-accent bg-surface transition-[left] duration-500 ease-out"
-          style={{ left: `${predicted}%` }}
-        />
-        <div
-          aria-hidden
-          className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground transition-[left] duration-500 ease-out"
-          style={{ left: `${actual}%` }}
+          className={`absolute inset-y-0 left-0 rounded-full transition-[width] duration-500 ease-out ${
+            emphasis ? "bg-accent" : "bg-foreground/60"
+          }`}
+          style={{ width: `${pct}%` }}
         />
       </div>
-      <div className="flex justify-between gap-3 text-[11px] font-medium text-muted">
-        <span className="text-balance break-words">{labelA}</span>
-        <span className="text-balance break-words text-right">{labelB}</span>
-      </div>
-      <div className="flex items-center justify-center gap-4 text-[11px] font-medium text-muted">
-        <span className="flex items-center gap-1">
-          <span aria-hidden className="h-2.5 w-2.5 rounded-full border-2 border-accent bg-surface" />
-          {t("result_you")}
-        </span>
-        <span className="flex items-center gap-1">
-          <span aria-hidden className="h-2 w-2 rounded-full bg-foreground" />
-          {t("result_crowd")}
-        </span>
-      </div>
+      <span
+        className={`w-11 shrink-0 text-right font-bold tabular-nums ${
+          emphasis ? "text-base text-accent" : "text-sm"
+        }`}
+      >
+        {pct}%
+      </span>
     </div>
   );
 }
 
-/** A titled card listing both options with their percentages — never a lone number. */
-function SplitPercentCard({
+/**
+ * A titled group of both options' values — the crowd's actual split, or the
+ * player's predicted split, never mixed in the same row. Crowd comes first
+ * and is visually heavier (accent bars/number): it's the payoff, the
+ * prediction is the comparison point underneath it. Option order within a
+ * section (optionA, then optionB) is fixed and must never change based on
+ * percentages or the player's choice — see AGENTS.md.
+ */
+function ResultSection({
   title,
-  labelA,
-  pctA,
-  labelB,
-  pctB,
-  accent,
+  emphasis,
+  options,
 }: {
   title: string;
-  labelA: string;
-  pctA: number;
-  labelB: string;
-  pctB: number;
-  accent?: boolean;
+  emphasis?: boolean;
+  options: { key: VoteOption; emoji: string; label: string; pct: number }[];
 }) {
   return (
     <div
-      className={
-        accent
-          ? "rounded-2xl border border-accent/25 bg-accent-soft p-4"
-          : "rounded-2xl border border-border bg-surface-sunken p-4"
-      }
+      className={`rounded-2xl border p-4 ${
+        emphasis ? "border-accent/25 bg-accent-soft" : "border-border bg-surface-sunken"
+      }`}
     >
       <p
-        className={
-          "text-xs font-semibold uppercase tracking-wider " + (accent ? "text-accent" : "text-muted")
-        }
+        className={`text-xs font-semibold uppercase tracking-wider ${
+          emphasis ? "text-accent" : "text-muted"
+        }`}
       >
         {title}
       </p>
-      <div className="mt-2 flex flex-col gap-1.5">
-        <div className="flex items-baseline justify-between gap-3">
-          <span className="min-w-0 flex-1 text-balance break-words text-sm font-medium">{labelA}</span>
-          <ScoreDisplay
-            value={pctA}
-            suffix="%"
-            className={"shrink-0 text-xl font-extrabold tabular-nums " + (accent ? "text-accent" : "")}
-          />
-        </div>
-        <div className="flex items-baseline justify-between gap-3">
-          <span className="min-w-0 flex-1 text-balance break-words text-sm font-medium">{labelB}</span>
-          <ScoreDisplay
-            value={pctB}
-            suffix="%"
-            className={"shrink-0 text-xl font-extrabold tabular-nums " + (accent ? "text-accent" : "")}
-          />
-        </div>
+      <div className="mt-3 flex flex-col gap-2.5">
+        {options.map((opt) => (
+          <ValueRow key={opt.key} emoji={opt.emoji} label={opt.label} pct={opt.pct} emphasis={emphasis} />
+        ))}
       </div>
     </div>
   );
@@ -140,51 +113,45 @@ export function ResultCard({
   shareUrl: string;
 }) {
   const { t } = useLocale();
-  const chosenLabel = result.chosenOption === "A" ? question.optionA : question.optionB;
   const shareText = t("share_text", { score: result.score });
+
+  const chosen = question[result.chosenOption === "A" ? "optionA" : "optionB"];
+  const chosenEmoji = question[result.chosenOption === "A" ? "emojiA" : "emojiB"];
+
+  const crowdOptions: { key: VoteOption; emoji: string; label: string; pct: number }[] = [
+    { key: "A", emoji: question.emojiA, label: question.optionA, pct: result.actualPercentageA },
+    { key: "B", emoji: question.emojiB, label: question.optionB, pct: 100 - result.actualPercentageA },
+  ];
+  const predictionOptions: { key: VoteOption; emoji: string; label: string; pct: number }[] = [
+    { key: "A", emoji: question.emojiA, label: question.optionA, pct: result.predictedPercentageA },
+    { key: "B", emoji: question.emojiB, label: question.optionB, pct: 100 - result.predictedPercentageA },
+  ];
 
   return (
     <GameCard className="flex animate-fade-in-up flex-col gap-6">
       <p className="text-center text-lg font-bold">{t(resultMessageKey(result.error))}</p>
 
-      <div className="grid grid-cols-2 gap-3">
-        <SplitPercentCard
-          title={t("result_yourPrediction")}
-          labelA={question.optionA}
-          pctA={result.predictedPercentageA}
-          labelB={question.optionB}
-          pctB={100 - result.predictedPercentageA}
-          accent
-        />
-        <SplitPercentCard
-          title={t("result_theCrowd")}
-          labelA={question.optionA}
-          pctA={result.actualPercentageA}
-          labelB={question.optionB}
-          pctB={100 - result.actualPercentageA}
-        />
+      <div className="flex flex-col gap-3">
+        <ResultSection title={t("result_theCrowd")} emphasis options={crowdOptions} />
+        <ResultSection title={t("result_yourPrediction")} options={predictionOptions} />
       </div>
 
-      <ComparisonTrack
-        predictedPercentageA={result.predictedPercentageA}
-        actualPercentageA={result.actualPercentageA}
-        labelA={question.optionA}
-        labelB={question.optionB}
-      />
-
-      <div className="text-center text-sm text-muted">
-        <p>{t("result_youChose", { label: chosenLabel })}</p>
+      <div className="flex flex-col items-center gap-1 text-center">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+          {t("result_youChoseLabel")}
+        </p>
+        <span className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3 py-1 text-sm font-semibold text-accent">
+          <span aria-hidden>{chosenEmoji}</span>
+          <span className="text-balance break-words">{chosen}</span>
+        </span>
       </div>
 
-      <div className="flex items-center justify-center gap-10 border-y border-border py-5 text-center">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted">
-            {t("result_error")}
-          </p>
-          <p className="mt-1 text-xl font-bold tabular-nums">
-            {t(result.error === 1 ? "result_pointsOne" : "result_pointsMany", { n: result.error })}
-          </p>
-        </div>
+      <div className="flex flex-col items-center gap-4 border-y border-border py-5 text-center">
+        <p className={`text-xl font-extrabold ${accuracyTone(result.error)}`}>
+          {result.error === 0
+            ? t("result_spotOn")
+            : t(result.error === 1 ? "result_pointsOffOne" : "result_pointsOffMany", { n: result.error })}
+        </p>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-muted">
             {t("result_score")}

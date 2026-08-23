@@ -35,7 +35,8 @@ export function LeaderboardTable() {
     <div className="flex w-full max-w-lg flex-col gap-6">
       <div className="flex flex-col items-center gap-1 text-center">
         <h1 className="text-2xl font-extrabold sm:text-3xl">{t("leaderboard_title")}</h1>
-        <p className="text-sm text-muted">{t("leaderboard_subtitle")}</p>
+        <p className="text-sm font-medium text-foreground">{t("leaderboard_subtitle")}</p>
+        <p className="text-xs text-muted">{t("leaderboard_scoreExplainer")}</p>
       </div>
 
       <div className="flex gap-1 self-center rounded-full border border-border bg-surface p-1">
@@ -65,6 +66,16 @@ export function LeaderboardTable() {
         />
       ) : (
         <ol className="flex flex-col gap-2">
+          <li
+            aria-hidden
+            className="flex items-center justify-between px-4 text-[11px] font-semibold uppercase tracking-wider text-muted"
+          >
+            <div className="flex items-center gap-3">
+              <span className="w-6">{t("leaderboard_colRank")}</span>
+              <span>{t("leaderboard_colPlayer")}</span>
+            </div>
+            <span>{t("leaderboard_colScore")}</span>
+          </li>
           {entries.map((entry) => (
             <li
               key={entry.playerId}
