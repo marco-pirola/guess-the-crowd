@@ -160,6 +160,7 @@ export const en = {
   profile_menu_emailPlaceholder: "you@example.com",
   profile_menu_emailSend: "Send magic link",
   profile_menu_emailSent: "Check your email for a link to finish saving your progress.",
+  profile_menu_progressSaved: "Your progress is saved to your Google account.",
   profile_menu_linkError: "Couldn't link your account. Try again.",
   profile_menu_linkErrorRetry: "Try again",
 
@@ -342,6 +343,7 @@ export const it: Record<keyof typeof en, string> = {
   profile_menu_emailPlaceholder: "tu@esempio.com",
   profile_menu_emailSend: "Invia link magico",
   profile_menu_emailSent: "Controlla la tua email per il link che completa il salvataggio.",
+  profile_menu_progressSaved: "I tuoi progressi sono salvati nel tuo account Google.",
   profile_menu_linkError: "Non è stato possibile collegare l'account. Riprova.",
   profile_menu_linkErrorRetry: "Riprova",
 

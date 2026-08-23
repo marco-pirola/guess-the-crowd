@@ -1,11 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/i18n/LocaleContext";
 import { createBrowserSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { Button } from "@/components/Button";
 
-type State = "idle" | "google-loading" | "email-form" | "email-loading" | "email-sent" | "error";
+type State =
+  | "checking"
+  | "idle"
+  | "google-loading"
+  | "email-form"
+  | "email-loading"
+  | "email-sent"
+  | "linked"
+  | "error";
 
 /**
  * "Save your progress": links the current anonymous session to a permanent
@@ -15,8 +23,32 @@ type State = "idle" | "google-loading" | "email-form" | "email-loading" | "email
  */
 export function SaveProgress() {
   const { t } = useLocale();
-  const [state, setState] = useState<State>("idle");
+  const [state, setState] = useState<State>(isSupabaseConfigured ? "checking" : "idle");
   const [email, setEmail] = useState("");
+
+  // Checks the *current* session (not local profile state, which has no
+  // notion of linked identities) for an already-linked Google identity, so a
+  // player who came back on the same device/session doesn't see "Continue
+  // with Google" again. Starting in "checking" (above) and rendering nothing
+  // until this resolves avoids a flash of that button.
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    let cancelled = false;
+    const supabase = createBrowserSupabaseClient();
+    supabase.auth
+      .getUser()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const hasGoogle = data.user?.identities?.some((identity) => identity.provider === "google") ?? false;
+        setState(hasGoogle ? "linked" : "idle");
+      })
+      .catch(() => {
+        if (!cancelled) setState("idle");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function handleGoogle() {
     if (!isSupabaseConfigured) return;
@@ -50,6 +82,14 @@ export function SaveProgress() {
     } catch {
       setState("error");
     }
+  }
+
+  if (state === "checking") {
+    return null;
+  }
+
+  if (state === "linked") {
+    return <p className="text-sm text-success">{t("profile_menu_progressSaved")}</p>;
   }
 
   if (state === "email-sent") {
