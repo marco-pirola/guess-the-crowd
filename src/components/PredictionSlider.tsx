@@ -55,12 +55,7 @@ export function PredictionSlider({ value, onChange, optionA, optionB }: Predicti
       </div>
 
       <div className="relative h-9 w-full touch-none select-none">
-        <div className="absolute left-0 right-0 top-1/2 h-3 -translate-y-1/2 overflow-hidden rounded-full bg-border">
-          <div
-            className="h-full rounded-full bg-accent transition-[width] duration-150 ease-out"
-            style={{ width: `${rightPercent}%` }}
-          />
-        </div>
+        <div className="absolute left-0 right-0 top-1/2 h-3 -translate-y-1/2 rounded-full bg-border" />
         <input
           type="range"
           min={0}

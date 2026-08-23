@@ -1,4 +1,5 @@
 import { PredictionResult, PublicQuestion } from "@/lib/types";
+import { rightPercentFromPredictedA } from "@/lib/predictionConvention";
 import { GameCard } from "@/components/GameCard";
 import { ScoreDisplay } from "@/components/ScoreDisplay";
 import { ShareButton } from "@/components/ShareButton";
@@ -14,18 +15,27 @@ function getResultMessage(error: number): string {
   return "You completely missed the crowd.";
 }
 
-/** Two dots on a shared 0–100 track (optionA → optionB) — same mental model as the slider. */
+/**
+ * Two dots on a shared 0–100 track (optionA → optionB) — same mental model
+ * as the slider, so dot position must use the same left→right convention:
+ * position = optionB's (right's) share, via rightPercentFromPredictedA.
+ * Positioning directly off the raw optionA percentage would put the dots
+ * backwards relative to the labelA/labelB ends of this exact track.
+ */
 function ComparisonTrack({
-  predicted,
-  actual,
+  predictedPercentageA,
+  actualPercentageA,
   labelA,
   labelB,
 }: {
-  predicted: number;
-  actual: number;
+  predictedPercentageA: number;
+  actualPercentageA: number;
   labelA: string;
   labelB: string;
 }) {
+  const predicted = rightPercentFromPredictedA(predictedPercentageA);
+  const actual = rightPercentFromPredictedA(actualPercentageA);
+
   return (
     <div className="flex flex-col gap-2">
       <div className="relative h-2 rounded-full bg-border">
@@ -58,6 +68,59 @@ function ComparisonTrack({
   );
 }
 
+/** A titled card listing both options with their percentages — never a lone number. */
+function SplitPercentCard({
+  title,
+  labelA,
+  pctA,
+  labelB,
+  pctB,
+  accent,
+}: {
+  title: string;
+  labelA: string;
+  pctA: number;
+  labelB: string;
+  pctB: number;
+  accent?: boolean;
+}) {
+  return (
+    <div
+      className={
+        accent
+          ? "rounded-2xl border border-accent/25 bg-accent-soft p-4"
+          : "rounded-2xl border border-border bg-surface-sunken p-4"
+      }
+    >
+      <p
+        className={
+          "text-xs font-semibold uppercase tracking-wider " + (accent ? "text-accent" : "text-muted")
+        }
+      >
+        {title}
+      </p>
+      <div className="mt-2 flex flex-col gap-1.5">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="truncate text-sm font-medium">{labelA}</span>
+          <ScoreDisplay
+            value={pctA}
+            suffix="%"
+            className={"text-xl font-extrabold tabular-nums " + (accent ? "text-accent" : "")}
+          />
+        </div>
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="truncate text-sm font-medium">{labelB}</span>
+          <ScoreDisplay
+            value={pctB}
+            suffix="%"
+            className={"text-xl font-extrabold tabular-nums " + (accent ? "text-accent" : "")}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ResultCard({
   question,
   result,
@@ -76,33 +139,36 @@ export function ResultCard({
     <GameCard className="flex animate-fade-in-up flex-col gap-6">
       <p className="text-center text-lg font-bold">{getResultMessage(result.error)}</p>
 
-      <div className="grid grid-cols-2 gap-3 text-center">
-        <div className="rounded-2xl border border-accent/25 bg-accent-soft p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-accent">
-            Your prediction
-          </p>
-          <ScoreDisplay
-            value={result.predictedPercentageA}
-            suffix="%"
-            className="mt-1 block text-4xl font-extrabold tabular-nums text-accent"
-          />
-        </div>
-        <div className="rounded-2xl border border-border bg-surface-sunken p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted">The crowd</p>
-          <ScoreDisplay
-            value={result.actualPercentageA}
-            suffix="%"
-            className="mt-1 block text-4xl font-extrabold tabular-nums"
-          />
-        </div>
+      <div className="grid grid-cols-2 gap-3">
+        <SplitPercentCard
+          title="Your prediction"
+          labelA={question.optionA}
+          pctA={result.predictedPercentageA}
+          labelB={question.optionB}
+          pctB={100 - result.predictedPercentageA}
+          accent
+        />
+        <SplitPercentCard
+          title="The crowd"
+          labelA={question.optionA}
+          pctA={result.actualPercentageA}
+          labelB={question.optionB}
+          pctB={100 - result.actualPercentageA}
+        />
       </div>
 
       <ComparisonTrack
-        predicted={result.predictedPercentageA}
-        actual={result.actualPercentageA}
+        predictedPercentageA={result.predictedPercentageA}
+        actualPercentageA={result.actualPercentageA}
         labelA={question.optionA}
         labelB={question.optionB}
       />
+
+      <div className="text-center text-sm text-muted">
+        <p>
+          You chose <span className="font-semibold text-foreground">{chosenLabel}</span>.
+        </p>
+      </div>
 
       <div className="flex items-center justify-center gap-10 border-y border-border py-5 text-center">
         <div>
@@ -121,9 +187,6 @@ export function ResultCard({
       </div>
 
       <div className="text-center text-sm text-muted">
-        <p>
-          You chose <span className="font-semibold text-foreground">{chosenLabel}</span>.
-        </p>
         {result.percentile !== null ? (
           <p className="mt-1">
             You predicted the crowd better than{" "}
