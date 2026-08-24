@@ -111,14 +111,17 @@ export function SaveProgress() {
 
       {state === "email-form" || state === "email-loading" ? (
         <form onSubmit={handleEmailSubmit} className="flex flex-col gap-2">
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder={t("profile_menu_emailPlaceholder")}
-            className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-4 focus-visible:ring-accent/30"
-          />
+          <label className="flex flex-col gap-2">
+            <span className="sr-only">{t("profile_menu_emailLabel")}</span>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t("profile_menu_emailPlaceholder")}
+              className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-4 focus-visible:ring-accent/30"
+            />
+          </label>
           <Button type="submit" variant="secondary" loading={state === "email-loading"}>
             {t("profile_menu_emailSend")}
           </Button>

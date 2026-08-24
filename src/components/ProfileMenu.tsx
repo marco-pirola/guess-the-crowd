@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLocale } from "@/lib/i18n/LocaleContext";
 import { useProfile } from "@/lib/profile/ProfileContext";
+import { useDialogFocus } from "@/lib/useDialogFocus";
 import { AVATAR_KEYS } from "@/lib/avatars";
 import { AvatarKey } from "@/lib/types";
 import { AvatarIcon } from "@/components/AvatarIcon";
@@ -29,6 +30,8 @@ export function ProfileMenu({ onClose }: { onClose: () => void }) {
   const [usernameDraft, setUsernameDraft] = useState(profile?.username ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef, onClose);
 
   if (!profile) return null;
 
@@ -58,9 +61,11 @@ export function ProfileMenu({ onClose }: { onClose: () => void }) {
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="profile-menu-title"
+      tabIndex={-1}
       className="fixed inset-0 z-50 flex items-end justify-start bg-background/60 backdrop-blur-sm sm:items-center sm:p-6"
       onClick={onClose}
     >
@@ -80,7 +85,7 @@ export function ProfileMenu({ onClose }: { onClose: () => void }) {
             type="button"
             onClick={onClose}
             aria-label={t("profile_menu_close")}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-surface-sunken"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/30"
           >
             ✕
           </button>
@@ -107,7 +112,7 @@ export function ProfileMenu({ onClose }: { onClose: () => void }) {
                 type="button"
                 onClick={() => handleAvatarPick(key)}
                 aria-pressed={profile.avatarKey === key}
-                className={`rounded-full transition-transform hover:scale-105 ${
+                className={`rounded-full transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/30 ${
                   profile.avatarKey === key ? "ring-2 ring-accent ring-offset-2 ring-offset-surface" : ""
                 }`}
               >

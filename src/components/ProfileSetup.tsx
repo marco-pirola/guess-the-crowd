@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLocale } from "@/lib/i18n/LocaleContext";
 import { useProfile } from "@/lib/profile/ProfileContext";
+import { useDialogFocus } from "@/lib/useDialogFocus";
 import { AVATAR_KEYS } from "@/lib/avatars";
 import { AvatarKey } from "@/lib/types";
 import { AvatarIcon } from "@/components/AvatarIcon";
@@ -22,6 +23,8 @@ export function ProfileSetup({ onDone }: { onDone: () => void }) {
   const [avatarKey, setAvatarKey] = useState<AvatarKey>(profile?.avatarKey ?? "fox");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -42,9 +45,11 @@ export function ProfileSetup({ onDone }: { onDone: () => void }) {
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="profile-setup-title"
+      tabIndex={-1}
       className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm px-4 py-8"
     >
       <form
@@ -80,7 +85,7 @@ export function ProfileSetup({ onDone }: { onDone: () => void }) {
                 type="button"
                 onClick={() => setAvatarKey(key)}
                 aria-pressed={avatarKey === key}
-                className={`rounded-full transition-transform hover:scale-105 ${
+                className={`rounded-full transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/30 ${
                   avatarKey === key ? "ring-2 ring-accent ring-offset-2 ring-offset-surface" : ""
                 }`}
               >

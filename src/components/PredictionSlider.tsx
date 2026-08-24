@@ -40,7 +40,7 @@ export function PredictionSlider({ value, onChange, optionA, optionB }: Predicti
           <p className="text-balance break-words text-xs font-semibold uppercase tracking-wide text-accent">
             {optionA}
           </p>
-          <p className="mt-1 text-4xl font-extrabold tabular-nums text-accent" aria-live="polite">
+          <p className="mt-1 text-4xl font-extrabold tabular-nums text-accent">
             {value}%
           </p>
         </div>
@@ -48,7 +48,7 @@ export function PredictionSlider({ value, onChange, optionA, optionB }: Predicti
           <p className="text-balance break-words text-xs font-semibold uppercase tracking-wide text-foreground/70">
             {optionB}
           </p>
-          <p className="mt-1 text-4xl font-extrabold tabular-nums" aria-live="polite">
+          <p className="mt-1 text-4xl font-extrabold tabular-nums">
             {pctB}%
           </p>
         </div>

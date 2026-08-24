@@ -19,8 +19,8 @@ import { ResultCard } from "@/components/ResultCard";
 import { Onboarding } from "@/components/Onboarding";
 import { ProfileSetup } from "@/components/ProfileSetup";
 import { Button } from "@/components/Button";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ErrorState } from "@/components/ErrorState";
+import { PredictCardSkeleton } from "@/components/GameLoadingSkeleton";
 
 type Phase = "loading" | "predict" | "vote" | "result" | "error";
 
@@ -221,16 +221,6 @@ export function GameScreen({
   const profileSetup = needsProfileSetup ? <ProfileSetup onDone={() => {}} /> : null;
   const onboarding = showOnboarding ? <Onboarding onDismiss={markOnboardingSeen} /> : null;
 
-  if (phase === "loading") {
-    return (
-      <>
-        {profileSetup}
-        {onboarding}
-        <LoadingSpinner label={t("game_loadingQuestion")} />
-      </>
-    );
-  }
-
   if (phase === "error") {
     return (
       <>
@@ -265,7 +255,13 @@ export function GameScreen({
         dailyNumber={question.dailyNumber}
         category={question.category}
         question={localizedText.text}
+        className="animate-fade-in-up"
       />
+
+      {/* Question text/category are already known (passed in as a prop) — only
+          whether the player already answered is still loading, so the question
+          above renders immediately and just this interactive area stays a skeleton. */}
+      {phase === "loading" && <PredictCardSkeleton />}
 
       {phase === "predict" && (
         <GameCard key="predict" className="flex animate-fade-in-up flex-col gap-6">

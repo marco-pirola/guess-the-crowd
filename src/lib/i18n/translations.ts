@@ -8,6 +8,7 @@
  */
 export const en = {
   // Navigation / header
+  nav_ariaLabel: "Main navigation",
   nav_leaderboard: "Leaderboard",
 
   // Home page
@@ -55,6 +56,8 @@ export const en = {
   result_theCrowd: "The crowd",
   result_yourPrediction: "Your prediction",
   result_youChoseLabel: "You chose",
+  result_samePick: "Same pick as the crowd",
+  result_differentPick: "You leaned the other way",
   result_spotOn: "Spot on!",
   result_pointsOffOne: "You missed the crowd by {n} point",
   result_pointsOffMany: "You missed the crowd by {n} points",
@@ -157,6 +160,7 @@ export const en = {
   profile_menu_saveProgressBody: "Keep your username, score, and stats when you change device or come back later.",
   profile_menu_continueWithGoogle: "Continue with Google",
   profile_menu_continueWithEmail: "Continue with email",
+  profile_menu_emailLabel: "Email address",
   profile_menu_emailPlaceholder: "you@example.com",
   profile_menu_emailSend: "Send magic link",
   profile_menu_emailSent: "Check your email for a link to finish saving your progress.",
@@ -191,6 +195,7 @@ export const en = {
 
 export const it: Record<keyof typeof en, string> = {
   // Navigation / header
+  nav_ariaLabel: "Navigazione principale",
   nav_leaderboard: "Classifica",
 
   // Home page
@@ -238,6 +243,8 @@ export const it: Record<keyof typeof en, string> = {
   result_theCrowd: "La folla",
   result_yourPrediction: "La tua previsione",
   result_youChoseLabel: "Hai scelto",
+  result_samePick: "Stessa scelta della folla",
+  result_differentPick: "Hai pensato diversamente",
   result_spotOn: "Hai indovinato!",
   result_pointsOffOne: "Hai mancato la folla di {n} punto",
   result_pointsOffMany: "Hai mancato la folla di {n} punti",
@@ -340,6 +347,7 @@ export const it: Record<keyof typeof en, string> = {
   profile_menu_saveProgressBody: "Mantieni username, punteggio e statistiche quando cambi dispositivo o torni più tardi.",
   profile_menu_continueWithGoogle: "Continua con Google",
   profile_menu_continueWithEmail: "Continua con email",
+  profile_menu_emailLabel: "Indirizzo email",
   profile_menu_emailPlaceholder: "tu@esempio.com",
   profile_menu_emailSend: "Invia link magico",
   profile_menu_emailSent: "Controlla la tua email per il link che completa il salvataggio.",

@@ -71,7 +71,7 @@ export default function DailyPage() {
         ) : !status ? (
           <LoadingSpinner label={t("daily_finding")} />
         ) : (
-          <div className="flex w-full max-w-lg flex-col items-center gap-6">
+          <div className="flex w-full max-w-lg animate-fade-in-up flex-col items-center gap-6">
             <GameCard className="flex w-full flex-col items-center gap-4 text-center">
               <p className="text-xs font-semibold uppercase tracking-wider text-accent">
                 {t("daily_completedNotice")}

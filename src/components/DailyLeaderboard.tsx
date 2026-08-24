@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DailyLeaderboardEntry } from "@/lib/types";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { LeaderboardRowsSkeleton } from "@/components/LeaderboardSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { useLocale } from "@/lib/i18n/LocaleContext";
 
@@ -28,11 +28,16 @@ export function DailyLeaderboard() {
         {t("daily_leaderboardTitle")}
       </h2>
       {entries === null ? (
-        <LoadingSpinner label={t("leaderboard_loading")} />
+        <>
+          <span role="status" className="sr-only">
+            {t("leaderboard_loading")}
+          </span>
+          <LeaderboardRowsSkeleton count={5} />
+        </>
       ) : entries.length === 0 ? (
         <EmptyState title={t("daily_noResultsYet")} />
       ) : (
-        <ol className="flex flex-col gap-2">
+        <ol className="flex animate-fade-in-up flex-col gap-2">
           {entries.map((entry) => (
             <li
               key={entry.playerId}

@@ -10,8 +10,8 @@
   --accent: #5b4dfc;
   --accent-soft: #efedff;
   --accent-foreground: #ffffff;
-  --success: #1a9e6b;
-  --danger: #d8483f;
+  --success: #12805a;
+  --danger: #c23b31;
   --shadow-card: 0 1px 2px rgba(20, 20, 26, 0.04), 0 16px 32px -20px rgba(20, 20, 26, 0.18);
 }
 
@@ -74,8 +74,8 @@
   --accent: #5b4dfc;
   --accent-soft: #efedff;
   --accent-foreground: #ffffff;
-  --success: #1a9e6b;
-  --danger: #d8483f;
+  --success: #12805a;
+  --danger: #c23b31;
   --shadow-card: 0 1px 2px rgba(20, 20, 26, 0.04), 0 16px 32px -20px rgba(20, 20, 26, 0.18);
 }
 
@@ -85,7 +85,7 @@
 
 body {
   background:
-    radial-gradient(1200px 600px at 50% -10%, color-mix(in srgb, var(--accent) 7%, transparent), transparent),
+    radial-gradient(1200px 600px at 50% -10%, color-mix(in srgb, var(--accent) 7%, transparent), transparent) fixed,
     var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
@@ -94,6 +94,11 @@ body {
 ::selection {
   background: var(--accent);
   color: var(--accent-foreground);
+}
+
+::placeholder {
+  color: var(--muted);
+  opacity: 1;
 }
 
 .text-balance {
@@ -155,4 +160,21 @@ body {
 
 .animate-pop-in {
   animation: pop-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Shared loading-state primitive: a shape-matching placeholder block, not a shimmer sweep — calmer and cheaper to run. */
+.skeleton {
+  background-color: var(--surface-sunken);
+  border-radius: 0.75rem;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
 }

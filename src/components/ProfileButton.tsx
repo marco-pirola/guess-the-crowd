@@ -26,7 +26,7 @@ export function ProfileButton() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={t("profile_button_label")}
-        className="fixed z-40 rounded-full border border-border bg-surface transition-transform hover:scale-105 active:scale-95"
+        className="fixed z-40 animate-pop-in rounded-full border border-border bg-surface transition-transform hover:scale-105 active:scale-95"
         style={{
           left: "1rem",
           bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))",

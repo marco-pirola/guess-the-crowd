@@ -33,6 +33,7 @@ export function Button({
     <button
       type={type}
       disabled={disabled || loading}
+      aria-busy={loading}
       className={`${base} ${variants[variant]} ${className}`}
       {...props}
     >

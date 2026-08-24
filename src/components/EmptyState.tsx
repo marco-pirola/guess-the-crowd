@@ -6,7 +6,7 @@ export function EmptyState({
   description?: string;
 }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border py-12 text-center">
+    <div className="flex animate-fade-in-up flex-col items-center gap-2 rounded-2xl border border-dashed border-border py-12 text-center">
       <p className="font-medium">{title}</p>
       {description && <p className="text-sm text-muted">{description}</p>}
     </div>

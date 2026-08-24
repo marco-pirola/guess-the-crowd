@@ -2,7 +2,7 @@ export function LoadingSpinner({ label = "Loading…" }: { label?: string }) {
   return (
     <div
       role="status"
-      className="flex flex-1 flex-col items-center justify-center gap-3 py-16 text-muted"
+      className="flex flex-1 animate-fade-in-up flex-col items-center justify-center gap-3 py-16 text-muted"
     >
       <span
         aria-hidden

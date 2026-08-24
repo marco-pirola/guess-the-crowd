@@ -8,7 +8,7 @@ export function ErrorState({
   onRetry?: () => void;
 }) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 py-16 text-center">
+    <div className="flex flex-1 animate-fade-in-up flex-col items-center justify-center gap-4 py-16 text-center">
       <p className="text-lg font-medium">{message}</p>
       {onRetry && <Button onClick={onRetry}>Try again</Button>}
     </div>

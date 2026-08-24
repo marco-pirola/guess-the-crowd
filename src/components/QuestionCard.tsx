@@ -19,15 +19,17 @@ export function QuestionCard({
   dailyNumber,
   category,
   question,
+  className = "",
 }: {
   dailyNumber: number;
   category: QuestionCategory;
   question: string;
+  className?: string;
 }) {
   const { t } = useLocale();
 
   return (
-    <div className="flex w-full max-w-lg flex-col items-center gap-3 text-center">
+    <div className={`flex w-full max-w-lg flex-col items-center gap-3 text-center ${className}`}>
       <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider">
         <span className="rounded-full bg-accent-soft px-2.5 py-1 text-accent">
           {t(categoryTranslationKey(category))}

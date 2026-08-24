@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { LeaderboardContext, LeaderboardEntry } from "@/lib/types";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { LeaderboardRowsSkeleton } from "@/components/LeaderboardSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { track } from "@/lib/analytics";
 import { useLocale } from "@/lib/i18n/LocaleContext";
@@ -51,7 +51,7 @@ export function LeaderboardTable() {
           <button
             key={r}
             onClick={() => setRange(r)}
-            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/30 ${
               range === r
                 ? "bg-accent text-accent-foreground"
                 : "text-muted hover:text-foreground"
@@ -63,7 +63,12 @@ export function LeaderboardTable() {
       </div>
 
       {entries === null ? (
-        <LoadingSpinner label={t("leaderboard_loading")} />
+        <>
+          <span role="status" className="sr-only">
+            {t("leaderboard_loading")}
+          </span>
+          <LeaderboardRowsSkeleton count={6} />
+        </>
       ) : entries.length === 0 ? (
         <EmptyState
           title={t("leaderboard_noScoresTitle")}
@@ -72,7 +77,7 @@ export function LeaderboardTable() {
           }
         />
       ) : (
-        <ol className="flex flex-col gap-2">
+        <ol className="flex animate-fade-in-up flex-col gap-2">
           <li
             aria-hidden
             className="flex items-center justify-between px-4 text-[11px] font-semibold uppercase tracking-wider text-muted"
