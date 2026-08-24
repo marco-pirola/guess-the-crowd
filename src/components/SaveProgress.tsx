@@ -60,21 +60,15 @@ export function SaveProgress() {
         options: { redirectTo: `${window.location.origin}/auth/callback` },
       });
 
-      if (error) {
-        // The Google identity already belongs to a different, existing
-        // account — it can never be linked to this anonymous session.
-        // Sign into that existing account instead; the anonymous session
-        // (and whatever progress it holds) is simply left behind.
-        if (error.code === "identity_already_exists") {
-          const { error: oauthError } = await supabase.auth.signInWithOAuth({
-            provider: "google",
-            options: { redirectTo: `${window.location.origin}/auth/callback` },
-          });
-          if (oauthError) throw oauthError;
-          return;
-        }
-        throw error;
-      }
+      // If the Google identity already belongs to a different, existing
+      // account, linkIdentity can't report that here — for an OAuth
+      // provider it only redirects to Google and back; GoTrue discovers the
+      // conflict after that round trip and reports it via a URL hash on
+      // /auth/callback, which src/app/auth/resolve/page.tsx handles (it
+      // signs into the existing account instead, leaving this anonymous
+      // session's progress behind). This throw only ever fires for a
+      // genuinely synchronous failure (e.g. network error).
+      if (error) throw error;
       // On success the browser navigates away to Google, then back to
       // /auth/callback — nothing more to do here.
     } catch {
