@@ -59,7 +59,22 @@ export function SaveProgress() {
         provider: "google",
         options: { redirectTo: `${window.location.origin}/auth/callback` },
       });
-      if (error) throw error;
+
+      if (error) {
+        // The Google identity already belongs to a different, existing
+        // account — it can never be linked to this anonymous session.
+        // Sign into that existing account instead; the anonymous session
+        // (and whatever progress it holds) is simply left behind.
+        if (error.code === "identity_already_exists") {
+          const { error: oauthError } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: { redirectTo: `${window.location.origin}/auth/callback` },
+          });
+          if (oauthError) throw oauthError;
+          return;
+        }
+        throw error;
+      }
       // On success the browser navigates away to Google, then back to
       // /auth/callback — nothing more to do here.
     } catch {
