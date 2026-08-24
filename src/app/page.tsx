@@ -30,14 +30,18 @@ export default function Home() {
 
         {/* Quick Play and Daily Challenge are two distinct modes — each gets
             its own labeled card so a new player never confuses "unlimited
-            play" with "today's 10-question official score" (Part 13). */}
+            play" with "today's 10-question official score" (Part 13).
+            Quick Play carries the strongest visual treatment (accent tint +
+            shadow + solid button) since it's the obvious first action for a
+            brand-new visitor; Daily Challenge stays fully functional but
+            visually quieter (Homepage audit, P0). */}
         <div className="grid w-full max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
           <Link
             href="/play"
-            className="flex flex-col items-center gap-2 rounded-3xl border border-border bg-surface p-6 text-center transition-transform hover:scale-[1.02]"
+            className="flex flex-col items-center gap-2 rounded-3xl border border-accent/40 bg-accent-soft p-6 text-center transition-transform hover:scale-[1.02]"
             style={{ boxShadow: "var(--shadow-card)" }}
           >
-            <span className="text-lg font-bold">{t("home_quickPlayTitle")}</span>
+            <span className="text-lg font-bold text-accent">{t("home_quickPlayTitle")}</span>
             <span className="text-sm text-muted">{t("home_quickPlayBody")}</span>
             <span className="mt-2 rounded-full bg-accent px-6 py-2 text-sm font-semibold text-accent-foreground">
               {t("home_playToday")}
@@ -45,19 +49,21 @@ export default function Home() {
           </Link>
           <Link
             href="/daily"
-            className="flex flex-col items-center gap-2 rounded-3xl border border-accent/40 bg-accent-soft p-6 text-center transition-transform hover:scale-[1.02]"
+            className="flex flex-col items-center gap-2 rounded-3xl border border-border bg-surface p-6 text-center transition-transform hover:scale-[1.02]"
           >
-            <span className="text-lg font-bold text-accent">{t("home_dailyChallengeTitle")}</span>
+            <span className="text-lg font-bold">{t("home_dailyChallengeTitle")}</span>
             <span className="text-sm text-muted">{t("home_dailyChallengeBody")}</span>
-            <span className="mt-2 rounded-full border border-accent px-6 py-2 text-sm font-semibold text-accent">
+            <span className="mt-2 rounded-full border border-border px-6 py-2 text-sm font-semibold text-muted">
               {t("home_playDaily")}
             </span>
           </Link>
         </div>
 
+        {/* Plain text link, not a bordered pill: this is supporting info,
+            not a third primary CTA competing with the two mode cards. */}
         <a
           href="#how-it-works"
-          className="rounded-full border border-border px-8 py-3 text-base font-semibold text-foreground transition-colors hover:bg-surface-sunken"
+          className="text-sm font-medium text-muted underline-offset-4 transition-colors hover:text-foreground hover:underline"
         >
           {t("home_howItWorks")}
         </a>

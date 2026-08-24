@@ -14,7 +14,7 @@ export const en = {
   // Home page
   home_tagline: "A daily prediction game",
   home_title: "Guess the Crowd",
-  home_subtitle: "Not what's right — what everyone else will pick.",
+  home_subtitle: "Predict what the crowd will choose. Then see how close you were.",
   home_playToday: "Play today",
   home_howItWorks: "How it works",
   home_step1Title: "Predict",
@@ -201,7 +201,7 @@ export const it: Record<keyof typeof en, string> = {
   // Home page
   home_tagline: "Un gioco di previsione quotidiano",
   home_title: "Guess the Crowd",
-  home_subtitle: "Non cosa è giusto — cosa sceglieranno gli altri.",
+  home_subtitle: "Prevedi cosa sceglierà la folla. Poi scopri quanto ci sei andato vicino.",
   home_playToday: "Gioca ora",
   home_howItWorks: "Come funziona",
   home_step1Title: "Prevedi",
