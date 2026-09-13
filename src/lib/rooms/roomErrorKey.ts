@@ -17,7 +17,6 @@ const ROOM_ERROR_KEYS: Record<string, TranslationKey> = {
   ALREADY_SUBMITTED: "room_error_alreadySubmitted",
   ROUND_NOT_ACTIVE: "room_error_roundNotActive",
   ROUND_NOT_REVEALED: "room_error_roundNotRevealed",
-  TOO_MANY_ACTIVE_ROOMS: "room_error_tooManyActiveRooms",
   TOO_MANY_JOIN_ATTEMPTS: "room_error_tooManyJoinAttempts",
   NOT_ENOUGH_QUESTIONS: "room_error_notEnoughQuestions",
   INVALID_NICKNAME: "room_error_invalidNickname",

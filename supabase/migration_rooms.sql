@@ -165,7 +165,6 @@ as $$
 declare
   v_player_id uuid := auth.uid();
   v_room rooms%rowtype;
-  v_active_count integer;
 begin
   if v_player_id is null then
     raise exception 'NOT_AUTHENTICATED';
@@ -184,14 +183,6 @@ begin
   end if;
 
   perform get_or_create_profile();
-
-  -- Abuse prevention (Part rooms security: "basic per-player active-room
-  -- limit"): cap concurrently-hosted, not-yet-finished rooms.
-  select count(*) into v_active_count from rooms
-    where host_id = v_player_id and status <> 'finished';
-  if v_active_count >= 3 then
-    raise exception 'TOO_MANY_ACTIVE_ROOMS';
-  end if;
 
   insert into rooms (code, host_id, max_players, round_count)
   values (generate_room_code(), v_player_id, p_max_players, p_round_count)

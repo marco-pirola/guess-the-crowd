@@ -20,7 +20,6 @@ export class GameFlowError extends Error {
       | "ALREADY_SUBMITTED"
       | "ROUND_NOT_ACTIVE"
       | "ROUND_NOT_REVEALED"
-      | "TOO_MANY_ACTIVE_ROOMS"
       | "TOO_MANY_JOIN_ATTEMPTS"
       | "NOT_ENOUGH_QUESTIONS"
       | "INVALID_NICKNAME"
