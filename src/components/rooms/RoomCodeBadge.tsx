@@ -4,16 +4,30 @@ import { useState } from "react";
 import { useLocale } from "@/lib/i18n/LocaleContext";
 import { Button } from "@/components/Button";
 
-/** Prominent room code display + copy action — same clipboard pattern as ShareButton.tsx. */
+/** Prominent room code display + copy actions — same clipboard pattern as ShareButton.tsx. */
 export function RoomCodeBadge({ code }: { code: string }) {
   const { t } = useLocale();
-  const [copied, setCopied] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
-  async function handleCopy() {
+  async function handleCopyCode() {
     try {
       await navigator.clipboard.writeText(code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    } catch {
+      // clipboard unavailable; nothing more we can do silently
+    }
+  }
+
+  async function handleCopyLink() {
+    try {
+      // Current browser origin — never hardcoded, so this works on
+      // localhost, previews, and production alike.
+      const url = `${window.location.origin}/rooms/${code}`;
+      await navigator.clipboard.writeText(url);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
     } catch {
       // clipboard unavailable; nothing more we can do silently
     }
@@ -27,9 +41,14 @@ export function RoomCodeBadge({ code }: { code: string }) {
       >
         {code}
       </p>
-      <Button variant="secondary" onClick={handleCopy}>
-        {copied ? t("room_copyCodeCopied") : t("room_copyCode")}
-      </Button>
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        <Button variant="secondary" onClick={handleCopyCode}>
+          {copiedCode ? t("room_copyCodeCopied") : t("room_copyCode")}
+        </Button>
+        <Button variant="secondary" onClick={handleCopyLink}>
+          {copiedLink ? t("room_copyCodeCopied") : t("room_copyInviteLink")}
+        </Button>
+      </div>
     </div>
   );
 }

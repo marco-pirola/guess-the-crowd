@@ -289,8 +289,12 @@ grant execute on function join_room(text, text) to authenticated;
 -- Idempotent no-op if the caller isn't a member / already left. Deliberately
 -- does nothing special when the leaving player is the host — Part rooms
 -- decision 4: no migration, no auto-cancel, the room may simply stall.
+--
+-- Returns the room id (like start_room/submit_round/reveal_round/next_round)
+-- so the API route can send the post-mutation Realtime Broadcast signal —
+-- without this, other already-connected clients never learn a player left.
 create or replace function leave_room(p_code text)
-returns void
+returns uuid
 language plpgsql
 security definer
 set search_path = public
@@ -305,11 +309,13 @@ begin
 
   select id into v_room_id from rooms where code = upper(trim(p_code));
   if v_room_id is null then
-    return;
+    return null;
   end if;
 
   update room_players set left_at = now()
     where room_id = v_room_id and player_id = v_player_id and left_at is null;
+
+  return v_room_id;
 end;
 $$;
 

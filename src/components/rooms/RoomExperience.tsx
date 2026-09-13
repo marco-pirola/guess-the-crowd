@@ -90,8 +90,13 @@ async function loadRoomSnapshot(
     questionChanged = true;
   }
 
+  // Fetched a round earlier than before (also during 'revealed', not just
+  // 'finished') so the reveal screen can show each player's cumulative
+  // room total alongside this round's score — get_room_leaderboard is
+  // already usable at any room status (see supabase/migration_rooms.sql),
+  // so this needed no backend change, just fetching it one state earlier.
   let leaderboard: RoomLeaderboardEntry[] | null = null;
-  if (state.status === "finished") {
+  if (state.status === "revealed" || state.status === "finished") {
     try {
       leaderboard = await apiFetchRoomLeaderboard(code);
     } catch (err) {
@@ -130,7 +135,9 @@ export function RoomExperience({ code }: { code: string }) {
     setFatalErrorCode(undefined);
     if (snapshot.roundState !== undefined) setRoundState(snapshot.roundState);
     if (snapshot.questionChanged) setQuestion(snapshot.question);
-    if (snapshot.state.status === "finished") setLeaderboard(snapshot.leaderboard);
+    if (snapshot.state.status === "revealed" || snapshot.state.status === "finished") {
+      setLeaderboard(snapshot.leaderboard);
+    }
   }
 
   // Initial load on mount — inlined (not routed through `refresh`, which
@@ -247,6 +254,7 @@ export function RoomExperience({ code }: { code: string }) {
           <RoomRevealResults
             question={question}
             roundState={roundState}
+            leaderboard={leaderboard}
             myPlayerId={room.playerId}
             isHost={isHost}
             isLastRound={isLastRound}

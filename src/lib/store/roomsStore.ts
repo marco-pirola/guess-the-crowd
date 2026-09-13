@@ -105,21 +105,23 @@ export async function createRoom(
   return { code: data.code };
 }
 
-export async function joinRoom(code: string, nickname: string): Promise<{ code: string }> {
+export async function joinRoom(code: string, nickname: string): Promise<{ id: string; code: string }> {
   assertRoomsAvailable();
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .rpc("join_room", { p_code: code, p_nickname: nickname })
     .single<RoomRow>();
   if (error) mapRoomError(error);
-  return { code: data.code };
+  return { id: data.id, code: data.code };
 }
 
-export async function leaveRoom(code: string): Promise<void> {
+/** Returns the room's id (or null if the code didn't match a room), used to send the post-mutation realtime broadcast. */
+export async function leaveRoom(code: string): Promise<string | null> {
   assertRoomsAvailable();
   const supabase = await createServerSupabaseClient();
-  const { error } = await supabase.rpc("leave_room", { p_code: code });
+  const { data, error } = await supabase.rpc("leave_room", { p_code: code });
   if (error) mapRoomError(error);
+  return data as string | null;
 }
 
 /** Returns the room's id, used to send the post-mutation realtime broadcast. */

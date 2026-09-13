@@ -27,6 +27,9 @@ export function RoomWaitingPanel({
   actionErrorMessage: string | null;
 }) {
   const { t } = useLocale();
+  // A UX guard only — reveal_round keeps enforcing its own server-side
+  // rules regardless of what this button shows or allows clicking.
+  const allSubmitted = roundState.submittedCount >= roundState.activePlayerCount;
 
   return (
     <GameCard className="flex w-full max-w-lg animate-fade-in-up flex-col items-center gap-5 text-center">
@@ -39,7 +42,7 @@ export function RoomWaitingPanel({
       </p>
 
       {isHost ? (
-        <Button onClick={onReveal} loading={busy} className="w-full">
+        <Button onClick={onReveal} loading={busy} disabled={!allSubmitted} className="w-full">
           {t("room_reveal")}
         </Button>
       ) : (

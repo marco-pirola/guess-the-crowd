@@ -3,7 +3,7 @@
 import { useLocale } from "@/lib/i18n/LocaleContext";
 import { localizeQuestion } from "@/lib/i18n/localizeQuestion";
 import { PublicQuestion, VoteOption } from "@/lib/types";
-import { RoomRoundRevealed } from "@/lib/rooms/types";
+import { RoomLeaderboardEntry, RoomRoundRevealed } from "@/lib/rooms/types";
 import { GameCard } from "@/components/GameCard";
 import { Button } from "@/components/Button";
 import { ScoreDisplay } from "@/components/ScoreDisplay";
@@ -15,6 +15,7 @@ function majoritySide(percentageA: number): VoteOption {
 export function RoomRevealResults({
   question,
   roundState,
+  leaderboard,
   myPlayerId,
   isHost,
   isLastRound,
@@ -24,6 +25,13 @@ export function RoomRevealResults({
 }: {
   question: PublicQuestion;
   roundState: RoomRoundRevealed;
+  /**
+   * Cumulative room standings as of this round, for the "Total: N" line
+   * under each round score. Not required for the reveal itself to render —
+   * if it hasn't loaded yet (or a background refresh of it failed), rows
+   * just show the round score alone rather than blocking on it.
+   */
+  leaderboard: RoomLeaderboardEntry[] | null;
   myPlayerId: string | null;
   isHost: boolean;
   isLastRound: boolean;
@@ -62,6 +70,7 @@ export function RoomRevealResults({
           const chosenEmoji = result.selectedOption === "A" ? question.emojiA : question.emojiB;
           const isMe = result.playerId === myPlayerId;
           const isTop = i === 0;
+          const totalScore = leaderboard?.find((entry) => entry.playerId === result.playerId)?.totalScore ?? null;
           return (
             <li
               key={result.playerId}
@@ -80,7 +89,17 @@ export function RoomRevealResults({
                   {t("room_predictedShort", { pct: result.predictedPercentageA })}
                 </p>
               </div>
-              <ScoreDisplay value={result.score} className="text-xl font-extrabold tabular-nums text-accent" />
+              <div className="flex flex-col items-end">
+                <p className="flex items-baseline gap-0.5 text-xl font-extrabold tabular-nums text-accent">
+                  <span aria-hidden>+</span>
+                  <ScoreDisplay value={result.score} />
+                </p>
+                {totalScore !== null && (
+                  <p className="text-xs tabular-nums text-muted">
+                    {t("room_totalLabel")}: <ScoreDisplay value={totalScore} />
+                  </p>
+                )}
+              </div>
             </li>
           );
         })}
