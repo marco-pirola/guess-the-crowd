@@ -2,8 +2,6 @@
 
 import { useLocale } from "@/lib/i18n/LocaleContext";
 
-const CONTACT_EMAIL = "guessthecrowd@gmail.com";
-
 export function PrivacyContent() {
   const { t } = useLocale();
 
@@ -37,12 +35,6 @@ export function PrivacyContent() {
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">{t("privacy_deletionTitle")}</h2>
         <p className="text-sm text-muted">{t("privacy_deletionBody")}</p>
-        <a
-          href={`mailto:${CONTACT_EMAIL}`}
-          className="text-sm font-medium text-accent underline-offset-2 hover:underline"
-        >
-          {CONTACT_EMAIL}
-        </a>
       </section>
 
       <section className="flex flex-col gap-2 border-t border-border/70 pt-6">
