@@ -1,5 +1,7 @@
 import { isAvatarKey } from "@/lib/avatars";
 import type { AvatarKey } from "@/lib/types";
+import { isValidRoomCodeFormat, normalizeRoomCode } from "@/lib/rooms/roomCode";
+import { ROOM_MAX_PLAYERS_MAX, ROOM_MAX_PLAYERS_MIN, ROOM_ROUND_COUNTS, RoomRoundCount } from "@/lib/rooms/types";
 
 export class ValidationError extends Error {}
 
@@ -55,4 +57,47 @@ export function assertValidAvatarKey(value: unknown): AvatarKey {
     throw new ValidationError("Invalid avatar.");
   }
   return value;
+}
+
+// ── Rooms ────────────────────────────────────────────────────────────────
+// Same character-class rule as usernames, kept as a separate pattern/error
+// on purpose — a room nickname is a distinct, room-scoped concept and must
+// never be required to match the account username (Part rooms decision 6).
+const NICKNAME_PATTERN = /^[A-Za-z0-9_]{3,20}$/;
+
+export function assertValidNickname(value: unknown): string {
+  if (typeof value !== "string" || !NICKNAME_PATTERN.test(value)) {
+    throw new ValidationError("Nickname must be 3-20 characters: letters, numbers, and underscores only.");
+  }
+  return value;
+}
+
+export function assertValidRoomCode(value: unknown): string {
+  if (typeof value !== "string") {
+    throw new ValidationError("Missing or invalid room code.");
+  }
+  const normalized = normalizeRoomCode(value);
+  if (!isValidRoomCodeFormat(normalized)) {
+    throw new ValidationError("Room code must be 5 characters (letters and numbers, excluding 0/O/1/I/L).");
+  }
+  return normalized;
+}
+
+export function assertValidMaxPlayers(value: unknown): number {
+  if (
+    typeof value !== "number" ||
+    !Number.isInteger(value) ||
+    value < ROOM_MAX_PLAYERS_MIN ||
+    value > ROOM_MAX_PLAYERS_MAX
+  ) {
+    throw new ValidationError(`Max players must be between ${ROOM_MAX_PLAYERS_MIN} and ${ROOM_MAX_PLAYERS_MAX}.`);
+  }
+  return value;
+}
+
+export function assertValidRoundCount(value: unknown): RoomRoundCount {
+  if (typeof value !== "number" || !ROOM_ROUND_COUNTS.includes(value as RoomRoundCount)) {
+    throw new ValidationError(`Round count must be one of: ${ROOM_ROUND_COUNTS.join(", ")}.`);
+  }
+  return value as RoomRoundCount;
 }

@@ -2,9 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   ValidationError,
   assertValidAvatarKey,
+  assertValidMaxPlayers,
+  assertValidNickname,
   assertValidPercentage,
   assertValidPlayerId,
   assertValidQuestionId,
+  assertValidRoomCode,
+  assertValidRoundCount,
   assertValidUsername,
   assertValidVoteOption,
 } from "@/lib/validation";
@@ -96,5 +100,61 @@ describe("assertValidAvatarKey", () => {
     expect(() => assertValidAvatarKey("cat")).toThrow(ValidationError);
     expect(() => assertValidAvatarKey("")).toThrow(ValidationError);
     expect(() => assertValidAvatarKey(undefined)).toThrow(ValidationError);
+  });
+});
+
+describe("assertValidNickname", () => {
+  it("accepts 3-20 alphanumeric/underscore characters", () => {
+    expect(assertValidNickname("abc")).toBe("abc");
+    expect(assertValidNickname("Room_Nick1")).toBe("Room_Nick1");
+  });
+
+  it("rejects too short, too long, or disallowed characters", () => {
+    expect(() => assertValidNickname("ab")).toThrow(ValidationError);
+    expect(() => assertValidNickname("a".repeat(21))).toThrow(ValidationError);
+    expect(() => assertValidNickname("bad name")).toThrow(ValidationError);
+    expect(() => assertValidNickname(undefined)).toThrow(ValidationError);
+  });
+});
+
+describe("assertValidRoomCode", () => {
+  it("normalizes to uppercase and accepts valid codes", () => {
+    expect(assertValidRoomCode("abcde")).toBe("ABCDE");
+    expect(assertValidRoomCode(" XY9PQ ")).toBe("XY9PQ");
+  });
+
+  it("rejects the wrong length, confusable characters, or non-strings", () => {
+    expect(() => assertValidRoomCode("ABCD")).toThrow(ValidationError);
+    expect(() => assertValidRoomCode("ABCD0")).toThrow(ValidationError);
+    expect(() => assertValidRoomCode(undefined)).toThrow(ValidationError);
+  });
+});
+
+describe("assertValidMaxPlayers", () => {
+  it("accepts integers between 2 and 20", () => {
+    expect(assertValidMaxPlayers(2)).toBe(2);
+    expect(assertValidMaxPlayers(20)).toBe(20);
+    expect(assertValidMaxPlayers(8)).toBe(8);
+  });
+
+  it("rejects out-of-range, non-integer, or non-number values", () => {
+    expect(() => assertValidMaxPlayers(1)).toThrow(ValidationError);
+    expect(() => assertValidMaxPlayers(21)).toThrow(ValidationError);
+    expect(() => assertValidMaxPlayers(4.5)).toThrow(ValidationError);
+    expect(() => assertValidMaxPlayers("8")).toThrow(ValidationError);
+  });
+});
+
+describe("assertValidRoundCount", () => {
+  it("accepts 5, 10, 15, or 20", () => {
+    for (const count of [5, 10, 15, 20]) {
+      expect(assertValidRoundCount(count)).toBe(count);
+    }
+  });
+
+  it("rejects any other value", () => {
+    expect(() => assertValidRoundCount(1)).toThrow(ValidationError);
+    expect(() => assertValidRoundCount(12)).toThrow(ValidationError);
+    expect(() => assertValidRoundCount(undefined)).toThrow(ValidationError);
   });
 });

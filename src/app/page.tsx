@@ -59,6 +59,22 @@ export default function Home() {
           </Link>
         </div>
 
+        {/* Rooms: a third, distinct mode (private multiplayer via a room
+            code) — kept out of the Quick Play/Daily grid above so that
+            pair's existing layout/styling stays untouched, but still a
+            clear, equally-reachable entry point right on the homepage. */}
+        <Link
+          href="/rooms"
+          className="flex w-full max-w-2xl flex-col items-center gap-2 rounded-3xl border border-border bg-surface p-6 text-center transition-transform hover:scale-[1.02]"
+          style={{ boxShadow: "var(--shadow-card)" }}
+        >
+          <span className="text-lg font-bold">{t("home_roomsTitle")}</span>
+          <span className="text-sm text-muted">{t("home_roomsBody")}</span>
+          <span className="mt-2 rounded-full border border-border px-6 py-2 text-sm font-semibold text-muted">
+            {t("home_roomsCta")}
+          </span>
+        </Link>
+
         {/* Plain text link, not a bordered pill: this is supporting info,
             not a third primary CTA competing with the two mode cards. */}
         <a
