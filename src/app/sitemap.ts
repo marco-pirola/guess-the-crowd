@@ -6,6 +6,7 @@ const ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[number]["ch
   { path: "/play", changeFrequency: "daily", priority: 0.8 },
   { path: "/daily", changeFrequency: "daily", priority: 0.8 },
   { path: "/leaderboard", changeFrequency: "daily", priority: 0.6 },
+  { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

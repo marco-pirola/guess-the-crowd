@@ -1,10 +1,13 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { ThemeProvider, THEME_INIT_SCRIPT } from "@/lib/theme/ThemeContext";
 import { LocaleProvider } from "@/lib/i18n/LocaleContext";
 import { ProfileProvider } from "@/lib/profile/ProfileContext";
 import { ProfileButton } from "@/components/ProfileButton";
+import { AnalyticsBoot } from "@/components/AnalyticsBoot";
+import { Footer } from "@/components/Footer";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/siteConfig";
 import "./globals.css";
 
@@ -71,10 +74,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <LocaleProvider>
             <ProfileProvider>
               {children}
+              <Footer />
               <ProfileButton />
+              <AnalyticsBoot />
             </ProfileProvider>
           </LocaleProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );

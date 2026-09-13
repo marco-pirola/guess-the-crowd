@@ -191,6 +191,26 @@ export const en = {
   home_dailyChallengeTitle: "Daily Challenge",
   home_dailyChallengeBody: "10 questions. Official score once per day.",
   home_playDaily: "Play Daily Challenge",
+
+  // Footer
+  footer_privacy: "Privacy",
+
+  // Privacy page
+  privacy_title: "Privacy",
+  privacy_intro: "Guess the Crowd is a small project. This page explains, in plain language, what data the app collects and why — it isn't a substitute for legal advice.",
+  privacy_dataTitle: "What we store",
+  privacy_dataBody: "Every visitor gets an anonymous player account automatically — no sign-up required. We store a username (auto-generated, or one you choose), your chosen avatar, and your prediction history, votes, scores, and streaks, all tied to that anonymous account. We don't ask for your name, and we don't know who you are unless you choose to link an account (see below).",
+  privacy_cookiesTitle: "Cookies & sessions",
+  privacy_cookiesBody: "The app sets one strictly necessary cookie to remember your anonymous player session — without it, the game couldn't track your score or streak between questions. This cookie isn't used for advertising or cross-site tracking, and the app doesn't set any others.",
+  privacy_analyticsTitle: "Analytics",
+  privacy_analyticsBody: "We use Vercel Web Analytics, provided by our hosting service, to see aggregate usage — for example, how many people visit, start a game, finish a question, or share a result. It's designed by Vercel to work without cookies or a persistent visitor identifier, and we never send it your player ID, username, or any account information. This description reflects how Vercel documents the product — we can't make a legal compliance guarantee on its behalf.",
+  privacy_linkingTitle: "Optional account linking",
+  privacy_linkingBody: "If you choose \"Save your progress,\" you can link your anonymous account to a Google account or an email address so you can keep your score on another device. That email address or Google identity is handled by Supabase, our authentication provider — we don't send it to analytics, and it's only used to let you sign back in.",
+  privacy_deletionTitle: "Deleting your data",
+  privacy_deletionBody: "We don't yet have a self-serve \"delete my data\" button in the app. Contact information for data requests will be provided before public launch.",
+  privacy_disclaimerTitle: "One more thing",
+  privacy_disclaimerBody: "This is a small, independently-run project, and this page is a good-faith, plain-language summary rather than a formal legal document. If you have concerns about your data, please reach out.",
+  privacy_lastUpdated: "Last updated: September 13, 2026",
 } as const;
 
 export const it: Record<keyof typeof en, string> = {
@@ -378,6 +398,26 @@ export const it: Record<keyof typeof en, string> = {
   home_dailyChallengeTitle: "Sfida del giorno",
   home_dailyChallengeBody: "10 domande. Punteggio ufficiale una volta al giorno.",
   home_playDaily: "Gioca la sfida del giorno",
+
+  // Footer
+  footer_privacy: "Privacy",
+
+  // Privacy page
+  privacy_title: "Privacy",
+  privacy_intro: "Guess the Crowd è un piccolo progetto. Questa pagina spiega, in modo semplice, quali dati raccoglie l'app e perché — non sostituisce una consulenza legale.",
+  privacy_dataTitle: "Cosa conserviamo",
+  privacy_dataBody: "Ogni visitatore riceve automaticamente un account anonimo — non serve registrarsi. Conserviamo uno username (generato automaticamente, o scelto da te), l'avatar selezionato e la cronologia delle tue previsioni, voti, punteggi e serie, tutto collegato a quell'account anonimo. Non ti chiediamo il tuo nome e non sappiamo chi sei, a meno che tu non scelga di collegare un account (vedi sotto).",
+  privacy_cookiesTitle: "Cookie e sessione",
+  privacy_cookiesBody: "L'app imposta un solo cookie strettamente necessario per ricordare la tua sessione di gioco anonima — senza di esso il gioco non potrebbe tenere traccia del tuo punteggio o della tua serie tra una domanda e l'altra. Questo cookie non viene usato per pubblicità o tracciamento tra siti, e l'app non ne imposta altri.",
+  privacy_analyticsTitle: "Analisi statistiche",
+  privacy_analyticsBody: "Usiamo Vercel Web Analytics, fornito dal nostro servizio di hosting, per vedere l'utilizzo aggregato — ad esempio quante persone visitano il sito, iniziano una partita, completano una domanda o condividono un risultato. Secondo la documentazione di Vercel, il servizio funziona senza cookie o un identificativo persistente del visitatore, e non gli inviamo mai il tuo id giocatore, username o altre informazioni dell'account. Questa descrizione riflette quanto dichiarato da Vercel — non possiamo garantire la conformità legale per conto loro.",
+  privacy_linkingTitle: "Collegamento account (opzionale)",
+  privacy_linkingBody: "Se scegli \"Salva i tuoi progressi\", puoi collegare il tuo account anonimo a un account Google o a un indirizzo email, per mantenere il punteggio su un altro dispositivo. Quell'indirizzo email o identità Google è gestito da Supabase, il nostro fornitore di autenticazione — non lo inviamo alle analisi statistiche, e viene usato solo per farti riaccedere.",
+  privacy_deletionTitle: "Cancellazione dei tuoi dati",
+  privacy_deletionBody: "Al momento non abbiamo un pulsante \"cancella i miei dati\" self-service nell'app. Le informazioni di contatto per le richieste sui dati saranno fornite prima del lancio pubblico.",
+  privacy_disclaimerTitle: "Un'ultima cosa",
+  privacy_disclaimerBody: "Questo è un piccolo progetto indipendente, e questa pagina è un riepilogo in buona fede e in linguaggio semplice, non un documento legale formale. Se hai dubbi sui tuoi dati, contattaci pure.",
+  privacy_lastUpdated: "Ultimo aggiornamento: 13 settembre 2026",
 };
 
 export type TranslationKey = keyof typeof en;
