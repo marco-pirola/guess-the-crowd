@@ -5,6 +5,8 @@ import { LeaderboardTable } from "@/components/LeaderboardTable";
 export const metadata: Metadata = {
   title: "Leaderboard",
   description: "See who predicts the crowd best.",
+  alternates: { canonical: "/leaderboard" },
+  openGraph: { url: "/leaderboard" },
 };
 
 export default function LeaderboardPage() {

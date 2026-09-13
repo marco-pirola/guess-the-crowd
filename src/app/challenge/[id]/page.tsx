@@ -14,10 +14,12 @@ export async function generateMetadata({
     const question = await getPublicQuestionById(id);
     const title = "Can you predict the crowd?";
     const description = `I'm playing Guess the Crowd: "${question.text}" — think you can predict what everyone else picks?`;
+    const url = `/challenge/${id}`;
     return {
       title,
       description,
-      openGraph: { title, description },
+      alternates: { canonical: url },
+      openGraph: { title, description, url },
       twitter: { title, description },
     };
   } catch {

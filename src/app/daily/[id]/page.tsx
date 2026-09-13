@@ -5,10 +5,19 @@ import { GameScreen } from "@/components/GameScreen";
 import { GameFlowError, getOrCreateDailyChallenge, getPublicQuestionById } from "@/lib/store";
 import { todayUtcDateString } from "@/lib/dailyChallenge";
 
-export const metadata: Metadata = {
-  title: "Daily Challenge",
-  description: "Today's 10-question Guess the Crowd challenge — the same for every player.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return {
+    title: "Daily Challenge",
+    description: "Today's 10-question Guess the Crowd challenge — the same for every player.",
+    alternates: { canonical: `/daily/${id}` },
+    openGraph: { url: `/daily/${id}` },
+  };
+}
 
 export default async function DailyQuestionPage({
   params,

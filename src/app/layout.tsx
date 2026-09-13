@@ -5,6 +5,7 @@ import { ThemeProvider, THEME_INIT_SCRIPT } from "@/lib/theme/ThemeContext";
 import { LocaleProvider } from "@/lib/i18n/LocaleContext";
 import { ProfileProvider } from "@/lib/profile/ProfileContext";
 import { ProfileButton } from "@/components/ProfileButton";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/siteConfig";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,25 +18,27 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const title = "Guess the Crowd";
-const description = "Think you know how people think? Predict the crowd, lock it in, and see how close you get.";
-
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: title,
-    template: `%s — ${title}`,
+    default: SITE_NAME,
+    template: `%s — ${SITE_NAME}`,
   },
-  description,
+  description: SITE_DESCRIPTION,
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title,
-    description,
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
     type: "website",
-    siteName: title,
+    siteName: SITE_NAME,
+    url: "/",
   },
   twitter: {
     card: "summary_large_image",
-    title,
-    description,
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
   },
 };
 
