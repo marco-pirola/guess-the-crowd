@@ -27,6 +27,8 @@ import { RoomSubmitForm } from "@/components/rooms/RoomSubmitForm";
 import { RoomWaitingPanel } from "@/components/rooms/RoomWaitingPanel";
 import { RoomRevealResults } from "@/components/rooms/RoomRevealResults";
 import { RoomFinalLeaderboard } from "@/components/rooms/RoomFinalLeaderboard";
+import { JoinRoomForm } from "@/components/rooms/JoinRoomForm";
+import { RoomHostLeftState } from "@/components/rooms/RoomHostLeftState";
 
 interface RoomSnapshot {
   state: RoomStateResponse;
@@ -197,6 +199,18 @@ export function RoomExperience({ code }: { code: string }) {
     return <LoadingSpinner label={t("room_loading")} />;
   }
 
+  if (fatalErrorCode === "NOT_ROOM_MEMBER") {
+    // Invite-link flow: the code is already known from the URL, so this
+    // never asks for it again — just a nickname, then join_room (the same
+    // API /rooms/join uses) establishes membership server-side before the
+    // next refresh() picks up the now-member state and the lobby renders.
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-16">
+        <JoinRoomForm presetCode={code} onJoined={() => refresh()} />
+      </div>
+    );
+  }
+
   if (fatalErrorCode || !room) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-16">
@@ -208,6 +222,21 @@ export function RoomExperience({ code }: { code: string }) {
   const isHost = room.hostId === room.playerId;
   const actionErrorMessage = actionErrorCode ? t(roomErrorTranslationKey(actionErrorCode)) : null;
   const isLastRound = room.currentRound >= room.roundCount;
+
+  // The host's own row drops out of get_room_state's players array the
+  // moment they leave (left_at set), so "no player has isHost: true" is
+  // already derivable from the existing response — no backend change
+  // needed. 'finished' is excluded: that's its own legitimate terminal
+  // state (final leaderboard), not one this should override.
+  const hostLeft = room.status !== "finished" && !room.players.some((p) => p.isHost);
+
+  if (hostLeft) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-8 sm:py-12">
+        <RoomHostLeftState />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col items-center gap-6 px-4 py-8 sm:py-12">

@@ -271,6 +271,9 @@ export const en = {
   room_roomScoresNote: "These scores only count for this room.",
   room_backToRooms: "Back to Rooms",
   room_loading: "Loading room…",
+  room_joinPromptTitle: "Enter a nickname to join",
+  room_hostLeftTitle: "The host left the room.",
+  room_hostLeftBody: "The room is no longer available.",
 } as const;
 
 export const it: Record<keyof typeof en, string> = {
@@ -537,6 +540,9 @@ export const it: Record<keyof typeof en, string> = {
   room_roomScoresNote: "Questi punteggi valgono solo per questa stanza.",
   room_backToRooms: "Torna alle stanze",
   room_loading: "Caricamento stanza…",
+  room_joinPromptTitle: "Inserisci un nickname per entrare",
+  room_hostLeftTitle: "L'host ha lasciato la stanza.",
+  room_hostLeftBody: "La stanza non è più disponibile.",
 };
 
 export type TranslationKey = keyof typeof en;
