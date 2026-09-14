@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { predictedAFromRightPercent, rightPercentFromPredictedA } from "@/lib/predictionConvention";
 import { useLocale } from "@/lib/i18n/LocaleContext";
+import { useSound } from "@/lib/sound/SoundContext";
 
 interface PredictionSliderProps {
   value: number;
@@ -28,8 +30,23 @@ interface PredictionSliderProps {
  */
 export function PredictionSlider({ value, onChange, optionA, optionB }: PredictionSliderProps) {
   const { t } = useLocale();
+  const { play } = useSound();
   const pctB = 100 - value;
   const rightPercent = rightPercentFromPredictedA(value); // drives the native input; see note above
+
+  // Tracks the last value this slider actually produced via the native
+  // input's own onChange (i.e. real user movement), so the tick can be
+  // compared against "what the user last moved to" rather than replayed on
+  // every render. Lazily initialized to the incoming value — a fresh mount
+  // (or a remount for a new question) never plays a tick just for showing
+  // up at its starting position. Kept in sync with the prop on every render
+  // (not just on user input) so a parent-driven/programmatic value change
+  // (e.g. resetting for a new question) silently updates the baseline
+  // instead of causing a spurious tick on the next real drag.
+  const lastTickedValueRef = useRef(value);
+  useEffect(() => {
+    lastTickedValueRef.current = value;
+  }, [value]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -69,7 +86,14 @@ export function PredictionSlider({ value, onChange, optionA, optionB }: Predicti
           max={100}
           step={1}
           value={rightPercent}
-          onChange={(e) => onChange(predictedAFromRightPercent(Number(e.target.value)))}
+          onChange={(e) => {
+            const nextValue = predictedAFromRightPercent(Number(e.target.value));
+            if (nextValue !== lastTickedValueRef.current) {
+              play("sliderTick");
+              lastTickedValueRef.current = nextValue;
+            }
+            onChange(nextValue);
+          }}
           aria-label={t("game_sliderLabel", { optionA, optionB })}
           aria-valuetext={`${optionA} ${value}%, ${optionB} ${pctB}%`}
           className="peer absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent opacity-0"

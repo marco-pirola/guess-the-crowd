@@ -5,6 +5,7 @@ import { useLocale } from "@/lib/i18n/LocaleContext";
 import { useProfile } from "@/lib/profile/ProfileContext";
 import { AvatarIcon } from "@/components/AvatarIcon";
 import { ProfileMenu } from "@/components/ProfileMenu";
+import { useSound } from "@/lib/sound/SoundContext";
 
 /**
  * Persistent circular avatar button, bottom-left, on every route (mounted
@@ -16,6 +17,7 @@ import { ProfileMenu } from "@/components/ProfileMenu";
 export function ProfileButton() {
   const { t } = useLocale();
   const { profile } = useProfile();
+  const { play } = useSound();
   const [open, setOpen] = useState(false);
 
   if (!profile) return null;
@@ -24,7 +26,10 @@ export function ProfileButton() {
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          play("action");
+          setOpen(true);
+        }}
         aria-label={t("profile_button_label")}
         className="fixed z-40 animate-pop-in rounded-full border border-border bg-surface transition-transform hover:scale-105 active:scale-95"
         style={{

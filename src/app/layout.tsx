@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { ThemeProvider, THEME_INIT_SCRIPT } from "@/lib/theme/ThemeContext";
 import { LocaleProvider } from "@/lib/i18n/LocaleContext";
+import { SoundProvider } from "@/lib/sound/SoundContext";
 import { ProfileProvider } from "@/lib/profile/ProfileContext";
 import { ProfileButton } from "@/components/ProfileButton";
 import { AnalyticsBoot } from "@/components/AnalyticsBoot";
@@ -72,12 +73,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <ThemeProvider>
           <LocaleProvider>
-            <ProfileProvider>
-              {children}
-              <Footer />
-              <ProfileButton />
-              <AnalyticsBoot />
-            </ProfileProvider>
+            <SoundProvider>
+              <ProfileProvider>
+                {children}
+                <Footer />
+                <ProfileButton />
+                <AnalyticsBoot />
+              </ProfileProvider>
+            </SoundProvider>
           </LocaleProvider>
         </ThemeProvider>
         <Analytics />

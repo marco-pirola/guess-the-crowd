@@ -9,6 +9,7 @@ import { RoomApiError, apiJoinRoom } from "@/lib/rooms/roomClient";
 import { roomErrorTranslationKey } from "@/lib/rooms/roomErrorKey";
 import { GameCard } from "@/components/GameCard";
 import { Button } from "@/components/Button";
+import { useSound } from "@/lib/sound/SoundContext";
 
 export function JoinRoomForm({
   presetCode,
@@ -20,6 +21,7 @@ export function JoinRoomForm({
   onJoined?: () => void;
 } = {}) {
   const { t } = useLocale();
+  const { play } = useSound();
   const router = useRouter();
   const [code, setCode] = useState(presetCode ?? "");
   const [nickname, setNickname] = useState("");
@@ -42,6 +44,7 @@ export function JoinRoomForm({
     setBusy(true);
     try {
       const room = await apiJoinRoom(normalizedCode, nickname);
+      play("action");
       if (onJoined) {
         onJoined();
       } else {

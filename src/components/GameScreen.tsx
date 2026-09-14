@@ -10,6 +10,7 @@ import { markFirstGameStarted, markQuestionCompleted } from "@/lib/analyticsProg
 import { useLocale } from "@/lib/i18n/LocaleContext";
 import { localizeQuestion } from "@/lib/i18n/localizeQuestion";
 import { useProfile } from "@/lib/profile/ProfileContext";
+import { useSound } from "@/lib/sound/SoundContext";
 import { QuestionCard } from "@/components/QuestionCard";
 import { PhaseSteps } from "@/components/PhaseSteps";
 import { GameCard } from "@/components/GameCard";
@@ -58,6 +59,7 @@ export function GameScreen({
 }) {
   const router = useRouter();
   const { t, locale } = useLocale();
+  const { play } = useSound();
   // Display-only: swaps question/option text for the Italian fields when
   // present, falling back to English (see localizeQuestion.ts). question.id,
   // emojis, category, and everything sent to the API stay untouched.
@@ -138,6 +140,7 @@ export function GameScreen({
       if (res.ok) {
         track("prediction_submitted", { questionId: question.id, value: predicted });
         markFirstGameStarted();
+        play("answerLocked");
         setPhase("vote");
         return;
       }
@@ -178,6 +181,7 @@ export function GameScreen({
       const data: PredictionResult = await resultRes.json();
       setResult(data);
       setPhase("result");
+      play("reveal");
       track("result_viewed", { questionId: question.id });
       markQuestionCompleted();
     } catch {
@@ -197,9 +201,11 @@ export function GameScreen({
       const nextIndex = dailyContext.position + 1;
       if (nextIndex >= dailyContext.questionIds.length) {
         track("daily_completed", { date: undefined });
+        play("finalResults");
         router.push("/daily");
         return;
       }
+      play("action");
       router.push(`/daily/${dailyContext.questionIds[nextIndex]}`);
       return;
     }
@@ -211,6 +217,7 @@ export function GameScreen({
       const res = await fetch(`/api/questions/next?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to pick next question");
       const data: { id: string } = await res.json();
+      play("action");
       router.push(`/challenge/${data.id}`);
     } catch {
       setAdvancing(false);

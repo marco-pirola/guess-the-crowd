@@ -9,6 +9,7 @@ import { RoomApiError, apiCreateRoom } from "@/lib/rooms/roomClient";
 import { roomErrorTranslationKey } from "@/lib/rooms/roomErrorKey";
 import { GameCard } from "@/components/GameCard";
 import { Button } from "@/components/Button";
+import { useSound } from "@/lib/sound/SoundContext";
 
 const MAX_PLAYERS_OPTIONS = Array.from(
   { length: ROOM_MAX_PLAYERS_MAX - ROOM_MAX_PLAYERS_MIN + 1 },
@@ -17,6 +18,7 @@ const MAX_PLAYERS_OPTIONS = Array.from(
 
 export function CreateRoomForm() {
   const { t } = useLocale();
+  const { play } = useSound();
   const router = useRouter();
   const [nickname, setNickname] = useState("");
   const [maxPlayers, setMaxPlayers] = useState(8);
@@ -38,6 +40,7 @@ export function CreateRoomForm() {
     setBusy(true);
     try {
       const room = await apiCreateRoom(nickname, maxPlayers, roundCount);
+      play("action");
       router.push(`/rooms/${room.code}`);
     } catch (err) {
       setErrorMessage(t(roomErrorTranslationKey(err instanceof RoomApiError ? err.code : undefined)));

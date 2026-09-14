@@ -4,8 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/lib/i18n/LocaleContext";
+import { useSound } from "@/lib/sound/SoundContext";
 import { PublicQuestion, VoteOption } from "@/lib/types";
-import { RoomLeaderboardEntry, RoomRoundState } from "@/lib/rooms/types";
+import { RoomLeaderboardEntry, RoomRoundState, RoomStatus } from "@/lib/rooms/types";
 import {
   RoomApiError,
   RoomStateResponse,
@@ -119,6 +120,7 @@ async function loadRoomSnapshot(
  */
 export function RoomExperience({ code }: { code: string }) {
   const { t } = useLocale();
+  const { play } = useSound();
   const router = useRouter();
 
   const [room, setRoom] = useState<RoomStateResponse | null>(null);
@@ -132,15 +134,97 @@ export function RoomExperience({ code }: { code: string }) {
 
   const lastQuestionIdRef = useRef<string | null>(null);
 
-  function applySnapshot(snapshot: RoomSnapshot) {
-    setRoom(snapshot.state);
-    setFatalErrorCode(undefined);
-    if (snapshot.roundState !== undefined) setRoundState(snapshot.roundState);
-    if (snapshot.questionChanged) setQuestion(snapshot.question);
-    if (snapshot.state.status === "revealed" || snapshot.state.status === "finished") {
-      setLeaderboard(snapshot.leaderboard);
+  // Sound-transition tracking — plain refs (never React state) so comparing
+  // "previous vs. new" on every snapshot never itself triggers a re-render.
+  // Each one starts out as "no baseline yet": the first snapshot this
+  // component instance ever applies (a fresh mount, including a cold load
+  // straight into an already-revealed/finished room) only ever records that
+  // baseline and never plays a sound — sounds only fire for a transition
+  // this client actually witnesses live, matching "don't play a sound just
+  // because a component mounted."
+  const prevStatusRef = useRef<RoomStatus | null>(null);
+  const prevRoundNumberRef = useRef<number | null>(null);
+  const statusBaselineSetRef = useRef(false);
+  const roundStateBaselineSetRef = useRef(false);
+  const allSubmittedRoundRef = useRef<number | null>(null);
+  const scoreShownRoundRef = useRef<number | null>(null);
+
+  // `play`'s identity can change across renders (it's a value from
+  // useSound(), not a ref) — reading it through this ref instead of closing
+  // over it directly keeps applySnapshot/handleSoundTransitions out of the
+  // mount effect's and refresh's dependency arrays, exactly like
+  // lastQuestionIdRef above. Always up to date via this render-time effect.
+  const playRef = useRef(play);
+  useEffect(() => {
+    playRef.current = play;
+  }, [play]);
+
+  /**
+   * Derives every non-self-triggered Rooms sound from two consecutive
+   * get_room_state/get_room_round_state snapshots — never from a raw
+   * component render, so a Realtime-triggered refetch that returns the same
+   * status/round it already had (or React re-rendering for an unrelated
+   * reason) never replays a sound. ("Answer locked" is the one exception:
+   * that fires directly at the actor's own successful submit call, below,
+   * since it's a self-only confirmation rather than a shared state change.)
+   */
+  const handleSoundTransitions = useCallback((snapshot: RoomSnapshot) => {
+    const status = snapshot.state.status;
+    const round = snapshot.state.currentRound;
+
+    if (statusBaselineSetRef.current) {
+      if (prevStatusRef.current === "in_round" && status === "revealed") {
+        playRef.current("reveal");
+      }
+      if (prevStatusRef.current === "revealed" && status === "in_round" && round !== prevRoundNumberRef.current) {
+        playRef.current("action");
+      }
+      if (prevStatusRef.current !== "finished" && status === "finished") {
+        playRef.current("finalResults");
+      }
     }
-  }
+    prevStatusRef.current = status;
+    prevRoundNumberRef.current = round;
+    statusBaselineSetRef.current = true;
+
+    const rs = snapshot.roundState;
+    if (rs !== undefined && rs !== null) {
+      if (rs.status === "in_round") {
+        const allSubmitted = rs.activePlayerCount > 0 && rs.submittedCount >= rs.activePlayerCount;
+        if (allSubmitted) {
+          if (roundStateBaselineSetRef.current && allSubmittedRoundRef.current !== rs.roundNumber) {
+            playRef.current("everyoneAnswered");
+          }
+          allSubmittedRoundRef.current = rs.roundNumber;
+        }
+      } else if (roundStateBaselineSetRef.current && scoreShownRoundRef.current !== rs.roundNumber) {
+        scoreShownRoundRef.current = rs.roundNumber;
+        // Slightly delayed so it lands just after "reveal" instead of the
+        // two overlapping into one indistinct hit — purely a playback-timing
+        // nicety, never blocks or delays anything else.
+        setTimeout(() => playRef.current("roundScore"), 260);
+      } else {
+        scoreShownRoundRef.current = rs.roundNumber;
+      }
+      roundStateBaselineSetRef.current = true;
+    }
+    // Every value read above is a ref (stable identity) plus the snapshot
+    // argument itself — nothing reactive to depend on.
+  }, []);
+
+  const applySnapshot = useCallback(
+    (snapshot: RoomSnapshot) => {
+      handleSoundTransitions(snapshot);
+      setRoom(snapshot.state);
+      setFatalErrorCode(undefined);
+      if (snapshot.roundState !== undefined) setRoundState(snapshot.roundState);
+      if (snapshot.questionChanged) setQuestion(snapshot.question);
+      if (snapshot.state.status === "revealed" || snapshot.state.status === "finished") {
+        setLeaderboard(snapshot.leaderboard);
+      }
+    },
+    [handleSoundTransitions]
+  );
 
   // Initial load on mount — inlined (not routed through `refresh`, which
   // itself calls setState) so the effect body only ever calls setState from
@@ -162,7 +246,7 @@ export function RoomExperience({ code }: { code: string }) {
     return () => {
       cancelled = true;
     };
-  }, [code]);
+  }, [code, applySnapshot]);
 
   const refresh = useCallback(async () => {
     try {
@@ -173,7 +257,7 @@ export function RoomExperience({ code }: { code: string }) {
     } finally {
       setLoading(false);
     }
-  }, [code]);
+  }, [code, applySnapshot]);
 
   useRoomChannel(room?.id ?? null, refresh);
 
@@ -258,7 +342,15 @@ export function RoomExperience({ code }: { code: string }) {
               question={question}
               roundNumber={room.currentRound}
               onSubmit={(predicted, selected) =>
-                runAction(() => apiSubmitRound(code, predicted, selected as VoteOption))
+                runAction(async () => {
+                  await apiSubmitRound(code, predicted, selected as VoteOption);
+                  // Self-only confirmation for the actor's own successful
+                  // submit — deliberately not derived from state diffing
+                  // (see handleSoundTransitions above), so it can never
+                  // double-fire from a Realtime-triggered refetch of the
+                  // same mySubmitted:true state.
+                  play("answerLocked");
+                })
               }
               busy={busy}
               actionErrorMessage={actionErrorMessage}

@@ -119,6 +119,8 @@ export const en = {
   settings_theme: "Theme",
   settings_light: "Light",
   settings_dark: "Dark",
+  settings_soundOn: "Sound on",
+  settings_soundOff: "Sound off",
 
   // Question categories
   category_Food: "Food",
@@ -388,6 +390,8 @@ export const it: Record<keyof typeof en, string> = {
   settings_theme: "Tema",
   settings_light: "Chiaro",
   settings_dark: "Scuro",
+  settings_soundOn: "Audio attivo",
+  settings_soundOff: "Audio disattivato",
 
   // Question categories
   category_Food: "Cibo",

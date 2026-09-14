@@ -6,8 +6,10 @@ import { Logo } from "@/components/Logo";
 import { StreakBadge } from "@/components/StreakBadge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { SoundToggle } from "@/components/SoundToggle";
 import { useLocale } from "@/lib/i18n/LocaleContext";
 import { TranslationKey } from "@/lib/i18n/translations";
+import { useSound } from "@/lib/sound/SoundContext";
 
 const NAV_LINK_BASE =
   "rounded-full px-2.5 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/30 sm:px-3 sm:py-1.5";
@@ -21,6 +23,7 @@ const NAV_ITEMS: { href: string; labelKey: TranslationKey }[] = [
 
 export function Header() {
   const { t } = useLocale();
+  const { play } = useSound();
   const pathname = usePathname();
 
   return (
@@ -36,6 +39,7 @@ export function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={item.href === "/leaderboard" ? () => play("action") : undefined}
                   aria-current={isActive ? "page" : undefined}
                   className={`${NAV_LINK_BASE} ${isActive ? NAV_LINK_ACTIVE : NAV_LINK_INACTIVE}`}
                 >
@@ -46,6 +50,7 @@ export function Header() {
           </nav>
           <div className="flex items-center gap-1.5 sm:gap-2">
             <LanguageToggle />
+            <SoundToggle />
             <ThemeToggle />
           </div>
         </div>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { useLocale } from "@/lib/i18n/LocaleContext";
 import { TranslationKey } from "@/lib/i18n/translations";
+import { useSound } from "@/lib/sound/SoundContext";
 
 const STEPS: { titleKey: TranslationKey; bodyKey: TranslationKey }[] = [
   { titleKey: "home_step1Title", bodyKey: "home_step1Body" },
@@ -13,6 +14,7 @@ const STEPS: { titleKey: TranslationKey; bodyKey: TranslationKey }[] = [
 
 export default function Home() {
   const { t } = useLocale();
+  const { play } = useSound();
 
   return (
     <>
@@ -38,6 +40,7 @@ export default function Home() {
         <div className="grid w-full max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
           <Link
             href="/play"
+            onClick={() => play("action")}
             className="flex flex-col items-center gap-2 rounded-3xl border border-accent/40 bg-accent-soft p-6 text-center transition-transform hover:scale-[1.02]"
             style={{ boxShadow: "var(--shadow-card)" }}
           >
@@ -49,6 +52,7 @@ export default function Home() {
           </Link>
           <Link
             href="/daily"
+            onClick={() => play("action")}
             className="flex flex-col items-center gap-2 rounded-3xl border border-border bg-surface p-6 text-center transition-transform hover:scale-[1.02]"
           >
             <span className="text-lg font-bold">{t("home_dailyChallengeTitle")}</span>
@@ -65,6 +69,7 @@ export default function Home() {
             clear, equally-reachable entry point right on the homepage. */}
         <Link
           href="/rooms"
+          onClick={() => play("action")}
           className="flex w-full max-w-2xl flex-col items-center gap-2 rounded-3xl border border-border bg-surface p-6 text-center transition-transform hover:scale-[1.02]"
           style={{ boxShadow: "var(--shadow-card)" }}
         >
